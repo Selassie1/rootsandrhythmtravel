@@ -1,0 +1,261 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Globe, User, X } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
+
+const navLinks = [
+  { name: 'Home', href: '/' },
+  { name: 'Tours', href: '/tours' },
+  { name: 'About', href: '/about' },
+  { name: 'Contact', href: '/contact' }
+];
+
+export default function GlobalNav() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true);
+        setIsMenuOpen(false); 
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Actively track Supabase authentication state
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  // Aggressively restrict navigation overlays from completely overriding distraction-free isolated flow portals
+  if (pathname === '/login' || pathname.startsWith('/checkout/verify') || pathname.startsWith('/admin')) return null;
+
+  return (
+    <>
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.8, ease: [0.21, 0.47, 0.32, 0.98] }}
+        className={`fixed z-50 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] flex items-center ${
+          isScrolled 
+            ? 'top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-[1000px] h-[72px] bg-[#131A14]/50 backdrop-blur-xl border border-white/10 rounded-full shadow-[0_20px_40px_rgba(0,0,0,0.5)] px-4 md:px-8'
+            : 'top-0 left-0 w-full h-[100px] bg-transparent px-6 md:px-16'
+        }`}
+      >
+        <div className="w-full h-full flex items-center justify-between relative">
+          
+          {/* --- LEFT SECTION --- */}
+          <div className="flex items-center w-[120px] md:w-[150px] overflow-hidden">
+            <AnimatePresence mode="wait">
+              {!isScrolled ? (
+                <motion.button 
+                  key="hamburger"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="flex items-center gap-4 text-white hover:text-[#B8860B] transition-colors outline-none cursor-pointer"
+                >
+                  <div className="flex flex-col gap-1.5 w-8">
+                    <span className="h-[2px] w-full bg-current rounded-full" />
+                    <span className="h-[2px] w-3/4 bg-current rounded-full" />
+                  </div>
+                  <span className="text-sm font-medium tracking-widest uppercase hidden md:block">Menu</span>
+                </motion.button>
+              ) : (
+                <motion.div 
+                  key="scrolled-logo"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
+                >
+                  <Link href="/" className="flex items-center gap-3 outline-none group cursor-pointer">
+                    <div className="relative w-10 h-10 transition-transform duration-500 group-hover:scale-105">
+                      <Image src="/logo.png" alt="Logo" fill className="object-contain" priority />
+                    </div>
+                    <div className="hidden lg:flex flex-col leading-none">
+                      <span className="text-[#F9B729] text-[10px] uppercase font-black tracking-widest">Roots &</span>
+                      <span className="text-[#E63931] text-[10px] uppercase font-black tracking-[0.2em]">Rhythm</span>
+                    </div>
+                  </Link>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* --- CENTER SECTION --- */}
+          <div className="flex-1 flex justify-center h-full relative">
+            <AnimatePresence mode="wait">
+              {!isScrolled ? (
+                <motion.div
+                  key="dome-logo"
+                  initial={{ opacity: 0, y: -50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -50, transition: { duration: 0.2 } }}
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[90px] bg-white/20 backdrop-blur-md rounded-b-[100px] flex items-center justify-center shadow-2xl"
+                >
+                  <Link href="/" className="relative w-14 h-14 mt-[-10px] group transition-transform duration-500 hover:scale-110 cursor-pointer">
+                    <Image src="/logo.png" alt="Roots & Rhythm Travels" fill className="object-contain" priority />
+                  </Link>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="pill-links"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
+                  className="hidden md:flex items-center h-full gap-8 lg:gap-12"
+                >
+                  {navLinks.map((link) => (
+                    <Link 
+                      key={link.name} 
+                      href={link.href}
+                      className="text-white/80 hover:text-[#E8D3A2] text-xs font-bold tracking-[0.2em] uppercase transition-colors cursor-pointer"
+                    >
+                      {link.name}
+                    </Link>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* --- RIGHT SECTION --- */}
+          <div className="flex justify-end gap-2 md:gap-4 w-[120px] md:w-[150px]">
+            <Link href="/currency" className={`hidden md:flex w-10 h-10 md:w-12 md:h-12 rounded-2xl items-center justify-center text-white transition-all cursor-pointer ${isScrolled ? 'bg-white/5 hover:bg-white/10' : 'bg-white/10 hover:bg-white backdrop-blur-md hover:text-black'}`}>
+              <Globe size={18} strokeWidth={2.5} />
+            </Link>
+            
+            {user ? (
+              <div className="relative group flex items-center justify-center">
+                <button className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center text-[#1A241B] font-bold text-lg font-serif transition-colors cursor-pointer bg-[#E8D3A2] hover:bg-white shadow-lg`}>
+                  {(user.user_metadata?.first_name?.charAt(0) || user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U').toUpperCase()}
+                </button>
+                
+                {/* Embedded Native Dropdown Menu */}
+                <div className="absolute right-0 top-[110%] w-56 bg-[#1A241B] border border-white/10 rounded-2xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 shadow-2xl translate-y-2 group-hover:translate-y-0">
+                  <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-xl text-white font-bold text-xs uppercase tracking-widest transition-colors mb-1">
+                    Traveler Dashboard
+                  </Link>
+                  <Link href="/dashboard/settings" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-xl text-white/50 hover:text-white font-bold text-xs uppercase tracking-widest transition-colors mb-1">
+                    Manage Identity
+                  </Link>
+                  <div className="w-full h-px bg-white/5 my-1" />
+                  <form action="/auth/signout" method="post" className="w-full m-0">
+                    <button type="submit" className="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-red-500/10 rounded-xl text-red-400 font-bold text-xs uppercase tracking-widest transition-colors cursor-pointer">
+                      Sign Out
+                    </button>
+                  </form>
+                </div>
+              </div>
+            ) : (
+              <Link href="/login" className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center text-white transition-all cursor-pointer ${isScrolled ? 'bg-white/5 hover:bg-[#B8860B] hover:text-[#1A241B]' : 'bg-white/10 hover:bg-[#B8860B] backdrop-blur-md hover:text-[#1A241B]'}`}>
+                <User size={18} strokeWidth={2.5} />
+              </Link>
+            )}
+
+            <AnimatePresence>
+              {isScrolled && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  onClick={() => setIsMenuOpen(true)}
+                  className="md:hidden w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-colors cursor-pointer"
+                >
+                  <div className="flex flex-col gap-1 w-[18px]">
+                    <span className="h-[2px] w-full bg-current rounded-full" />
+                    <span className="h-[2px] w-[14px] bg-current rounded-full mx-auto" />
+                    <span className="h-[2px] w-full bg-current rounded-full" />
+                  </div>
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
+
+        </div>
+      </motion.nav>
+
+      {/* --- OVERLAY MENU --- */}
+      <AnimatePresence>
+        {isMenuOpen && !isScrolled && (
+          <motion.div 
+            initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+            animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
+            exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+            transition={{ duration: 0.4 }}
+            className="fixed inset-0 z-40 bg-[#131A14]/95 flex flex-col items-center justify-center"
+          >
+            <button 
+              onClick={() => setIsMenuOpen(false)}
+              className="absolute top-8 right-8 text-white/50 hover:text-white transition-all p-4 rounded-full hover:bg-white/5 z-50 group cursor-pointer"
+            >
+              <X size={32} strokeWidth={1.5} className="transition-transform duration-500 group-hover:rotate-90" />
+            </button>
+
+            <div className="flex flex-col items-center gap-10 text-center w-full max-w-xl px-6 relative z-10">
+              <span className="text-[#B8860B] font-bold text-xs tracking-[0.4em] uppercase mb-4 opacity-50 block">Menu</span>
+              
+              <div className="flex flex-col gap-6 md:gap-8 w-full items-center">
+                {navLinks.map((link, i) => (
+                  <motion.div 
+                    key={link.name}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 * i, ease: [0.21, 0.47, 0.32, 0.98] }}
+                  >
+                    <Link 
+                      href={link.href}
+                      className="text-5xl md:text-7xl font-serif text-white hover:text-[#E8D3A2] transition-colors leading-none tracking-tight block relative group cursor-pointer"
+                    >
+                      {link.name}
+                      <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-0 h-[2px] bg-[#B8860B] transition-all duration-500 group-hover:w-[40px]" />
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.5 }}
+                className="mt-12"
+              >
+                <Link href={user ? "/dashboard" : "/login"} className="px-8 py-4 border border-white/20 text-white hover:bg-white hover:text-black rounded-full font-bold text-[10px] md:text-xs tracking-[0.2em] transition-all uppercase inline-flex items-center gap-3 cursor-pointer">
+                  <User size={16} /> {user ? "Access Dashboard" : "Sign In to Portal"}
+                </Link>
+              </motion.div>
+            </div>
+            
+            <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] bg-[#B8860B]/10 rounded-full blur-[140px] pointer-events-none" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
