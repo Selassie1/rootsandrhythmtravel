@@ -83,3 +83,18 @@ export async function searchTours(params: {
 
   return data as TourSearchResult[];
 }
+
+export async function getActiveTours() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('tours')
+    .select('title, slug, description_body, region, curated_inclusions, hero_image_url, duration_days, experience')
+    .eq('is_active', true);
+
+  if (error) {
+    console.error("Error fetching active tours:", error);
+    return [];
+  }
+
+  return data;
+}

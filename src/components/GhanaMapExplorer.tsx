@@ -1,112 +1,166 @@
 //src/components/GhanaMapExplorer.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Compass, Sparkles, X, ArrowRight } from 'lucide-react';
+import { getActiveTours } from '@/actions/tours';
 
 // Local GeoJSON for boundaries of Ghana's regions (GADM data)
 const geoUrl = "/data/ghana-regions.json";
 
-interface RegionInfo {
-  name: string;
-  images: string[];
-  description: string;
-  events: string[];
-  color: string;
+interface Tour {
+  title: string;
+  slug: string;
+  description_body: string | null;
+  region: string;
+  curated_inclusions: any;
+  hero_image_url: string | null;
 }
 
-const regionData: Record<string, RegionInfo> = {
-  "Greater Accra": {
-    name: "Greater Accra",
-    images: ["/images/Black-star-square.jpeg", "/images/Square.jpeg", "/images/Nkrumah-museum.jpeg", "/images/Art-center.jpeg"],
-    description: "Explore the Black Star Square, Kwame Nkrumah Memorial, and bustling Arts Centre.",
-    events: ["City Heritage Tour", "Nightlife Experience", "Street Food Tasting", "Arts Centre Walk"],
-    color: "#D4AF37" // Premium Gold
-  },
-  "Central": {
-    name: "Central Region",
-    images: ["/images/Cape-Coast-fest.jpeg", "/images/cape-coast.png"],
-    description: "Journey through the diaspora roots and vibrant local festivals.",
-    events: ["Diaspora Access Trip", "Castle Heritage Tour", "Oguaa Fetu Afahye"],
-    color: "#8B5A2B" // Warm Bronze
-  },
-  "Volta": {
-    name: "Volta Region",
-    images: ["/images/Volta.jpeg", "/images/volta-weaving.png", "/images/adomi.jpeg"],
-    description: "Experience indigenous Kente weaving and breathtaking landscapes.",
-    events: ["Kente Weaving Workshop", "Mountain Hiking", "Falls Expedition"],
-    color: "#2A3B2C" // Forest Green
-  },
-  "Ashanti": {
-    name: "Ashanti Region",
-    images: ["/images/Drumming.jpeg", "/images/aburi.png"], // Proxy images for visually rich showcase
-    description: "The heart of the ancient Ashanti Kingdom and legendary cultural heritage.",
-    events: ["Palace Tour", "Cultural Drumming", "Kejetia Market Walk"],
-    color: "#8C1515" // Royal Red
-  },
-  "Northern": {
-    name: "Northern Region",
-    images: ["/images/kintampo.jpeg"], // Using proxy asset
-    description: "Discover the sprawling savannas, ancient mosques, and deeply rich diverse traditions.",
-    events: ["Safari Expedition", "Laraba Mosque Tour", "Cultural Dance"],
-    color: "#CD853F" // Sandy Ochre
-  }
-};
-
-type HoverState = RegionInfo | { name: string; isEmpty: true } | null;
-
-type TooltipState = {
+interface TooltipState {
   show: boolean;
   regionName: string;
-  isConfigured: boolean;
-  events: string[];
+  tours: string[];
   x: number;
   y: number;
+}
+
+// Map database region ENUMs to GeoJSON NAME_1 properties (Corrected CamelCase from GeoJSON)
+const dbToGeoMap: Record<string, string> = {
+  'GREATER_ACCRA': 'GreaterAccra',
+  'ASHANTI': 'Ashanti',
+  'CENTRAL': 'Central',
+  'VOLTA': 'Volta',
+  'NORTHERN': 'Northern',
+  'WESTERN': 'Western',
+  'WESTERN_NORTH': 'WesternNorth',
+  'UPPER_EAST': 'UpperEast',
+  'UPPER_WEST': 'UpperWest',
+  'EASTERN': 'Eastern',
+  'BONO': 'Bono',
+  'BONO_EAST': 'BonoEast',
+  'AHAFO': 'Ahafo',
+  'SAVANNAH': 'Savannah',
+  'NORTH_EAST': 'NorthEast',
+  'OTI': 'Oti'
 };
+
+// Original color dataset mapping
+const regionColors: Record<string, string> = {
+  'GREATER_ACCRA': "#D4AF37", // Gold
+  'CENTRAL': "#8B5A2B",       // Bronze
+  'VOLTA': "#2A3B2C",         // Dark Green
+  'ASHANTI': "#8C1515",       // Red
+  'NORTHERN': "#CD853F"       // Ochre
+};
+
+// Inverse map for GeoJSON lookup
+const geoToDbMap: Record<string, string> = Object.entries(dbToGeoMap).reduce((acc, [key, val]) => {
+  acc[val] = key;
+  return acc;
+}, {} as Record<string, string>);
 
 const premiumPalette = [
   "#B8860B", "#8B5A2B", "#556B2F", "#CD853F", "#A0522D", "#8C1515",
   "#6B8E23", "#8F9779", "#4A5D23", "#654321", "#C19A6B", "#80461B"
 ];
 
+// Formatter for display names (handles GreaterAccra, UPPER_SNAKE_CASE, etc.)
+const formatRegionName = (name: string) => {
+  if (!name) return "";
+  
+  // Handle UPPER_SNAKE_CASE from DB
+  let formatted = name.split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+    
+  // Handle CamelCase if it's still stuck (e.g. GreaterAccra)
+  formatted = formatted.replace(/([a-z])([A-Z])/g, '$1 $2').trim();
+  
+  if (!formatted.toLowerCase().includes("region") && !formatted.toLowerCase().includes("accra")) {
+    formatted += " Region";
+  }
+  return formatted;
+};
+
 const GhanaMapExplorer = () => {
   const router = useRouter();
-  const [hoveredRegion, setHoveredRegion] = useState<HoverState>(null);
-  const [selectedRegion, setSelectedRegion] = useState<HoverState>(null);
-  const [tooltip, setTooltip] = useState<TooltipState>({ show: false, regionName: '', isConfigured: false, events: [], x: 0, y: 0 });
+  const [activeTours, setActiveTours] = useState<Tour[]>([]);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
+  const [currentTourIndex, setCurrentTourIndex] = useState(0);
+  const [tooltip, setTooltip] = useState<TooltipState>({ show: false, regionName: '', tours: [], x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(false);
 
-  const handleMouseEnter = (regionState: HoverState, originalName: string, isConfigured: boolean, events: string[]) => {
-    setHoveredRegion(regionState);
-    setTooltip(prev => ({
-      ...prev,
-      show: true,
-      regionName: originalName,
-      isConfigured: isConfigured,
-      events: events
-    }));
-  };
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    const fetchData = async () => {
+      const tours = await getActiveTours();
+      setActiveTours(tours || []);
+    };
+    fetchData();
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-  const handleMouseLeave = () => {
-    setHoveredRegion(null);
-    setTooltip(prev => ({ ...prev, show: false }));
-  };
+  const toursByRegion = useMemo(() => {
+    const groups: Record<string, Tour[]> = {};
+    activeTours.forEach(tour => {
+      if (!groups[tour.region]) groups[tour.region] = [];
+      groups[tour.region].push(tour);
+    });
+    return groups;
+  }, [activeTours]);
 
-  const handleRegionClick = (regionState: HoverState) => {
-    if (selectedRegion && regionState && selectedRegion.name === regionState.name) {
+  const activeRegionDbNames = useMemo(() => new Set(Object.keys(toursByRegion)), [toursByRegion]);
+
+  const displayedRegion = hoveredRegion || selectedRegion;
+  const regionTours = displayedRegion ? toursByRegion[geoToDbMap[displayedRegion]] || [] : [];
+  const currentTour = regionTours[currentTourIndex];
+
+  const handleRegionClick = (geoName: string) => {
+    if (selectedRegion === geoName) {
       setSelectedRegion(null);
     } else {
-      setSelectedRegion(regionState);
+      setSelectedRegion(geoName);
+      setCurrentTourIndex(0);
     }
   };
 
-  const displayRegion = hoveredRegion || selectedRegion;
+  const nextTour = () => {
+    setCurrentTourIndex((prev) => (prev + 1) % regionTours.length);
+  };
+
+  const prevTour = () => {
+    setCurrentTourIndex((prev) => (prev - 1 + regionTours.length) % regionTours.length);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent, geoName: string) => {
+    if (isMobile) return;
+    
+    const dbRegion = geoToDbMap[geoName];
+    const regionTours = toursByRegion[dbRegion] || [];
+    
+    setTooltip({
+      show: true,
+      regionName: geoName,
+      tours: regionTours.map(t => t.title),
+      x: e.clientX,
+      y: e.clientY
+    });
+    setHoveredRegion(geoName);
+  };
 
   return (
-    <section className="w-full bg-[#1A2118] py-24 relative overflow-hidden">
-      
-      {/* Background Ghanaian/Adinkra-inspired symbols (watermarks) */}
+    <section className="w-full bg-[#1A2118] py-16 md:py-24 relative overflow-hidden">
+      {/* Background Adinkra symbols */}
       <div 
         className="absolute top-[-5%] left-[-2%] w-[40rem] h-[40rem] bg-[#D4AF37] opacity-[0.06] pointer-events-none rotate-12" 
         style={{ WebkitMaskImage: 'url(/icons/gyenyame.svg)', WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat' }}
@@ -115,261 +169,247 @@ const GhanaMapExplorer = () => {
         className="absolute bottom-[-20%] left-[15%] w-[35rem] h-[35rem] bg-[#D4AF37] opacity-[0.05] pointer-events-none -rotate-12" 
         style={{ WebkitMaskImage: 'url(/icons/akan.svg)', WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat' }}
       ></div>
-      <div 
-        className="absolute top-[-5%] right-[-20%] w-[35rem] h-[35rem] bg-[#D4AF37] opacity-[0.04] pointer-events-none rotate-45" 
-        style={{ WebkitMaskImage: 'url(/icons/adinkra.svg)', WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat' }}
-      ></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex flex-col md:flex-row gap-8 bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden border border-gray-100 p-6 sm:p-10 h-auto md:h-[680px]">
-        
-        {/* Left Column - Map */}
-        <div 
-          className="w-full md:w-1/2 relative bg-transparent flex items-center justify-center p-0 min-h-[400px] h-full overflow-hidden"
-          onMouseMove={(e) => setTooltip(prev => ({ ...prev, x: e.clientX, y: e.clientY }))}
-        >
+        <div className="flex flex-col md:flex-row gap-8 bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 p-4 sm:p-10 min-h-[600px] md:h-[700px]">
           
-          {/* Overlay Text */}
-          <div className="absolute top-8 left-4 sm:top-10 sm:left-[2] z-10 max-w-[240px] pointer-events-none">
-            <span className="text-[10px] tracking-[0.2em] text-gray-400 font-bold uppercase mb-2 block">The Motherland</span>
-            <h2 className="text-4xl sm:text-5xl font-serif text-[#1A2118] leading-none mb-3">Ghana</h2>
-            <p className="text-gray-500 text-[13px] leading-relaxed pr-4">
-              Discover roots, culture, <br />and rhythm across our <br/>diverse, breathtaking <br /> regions.
-            </p>
-          </div>
-
-          <ComposableMap
-            projection="geoMercator"
-            projectionConfig={{
-              scale: 7600,
-              center: [-1.5, 8.0], // Shifted center X to perfectly move the map towards the right
-            }}
-            width={800}
-            height={800}
-            className="w-full h-full object-contain drop-shadow-md"
-          >
-            <Geographies geography={geoUrl}>
-              {({ geographies }: { geographies: any[] }) =>
-                geographies.map((geo: any, index: number) => {
-                  let rName = geo.properties.NAME_1 || "";
-                  rName = rName.replace(/([A-Z])/g, ' $1').trim();
-                  if (!rName.toLowerCase().includes("region") && !rName.toLowerCase().includes("accra")) {
-                    rName += " Region";
-                  }
-
-                  let key = "";
-                  if (rName.includes("Accra")) key = "Greater Accra";
-                  else if (rName.includes("Central")) key = "Central";
-                  else if (rName.includes("Volta")) key = "Volta";
-                  else if (rName.includes("Ashanti")) key = "Ashanti";
-                  else if (rName.includes("Northern")) key = "Northern";
-
-                  const regionState: HoverState = key && regionData[key] 
-                    ? regionData[key] 
-                    : { name: rName, isEmpty: true };
-
-                  const isConfigured = !!(key && regionData[key]);
-                  const activeEvents = isConfigured ? regionData[key].events : [];
-
-                  const isLocked = selectedRegion?.name === regionState.name;
-
-                  let fillHex = "#E5E7EB"; // Default subtle gray
-                  let hoverHex = premiumPalette[index % premiumPalette.length]; 
-                  
-                  if (isConfigured) {
-                    fillHex = regionData[key].color;
-                    hoverHex = fillHex;
-                  }
-
-                  const currentFill = isLocked ? hoverHex : fillHex;
-
-                  return (
-                    <Geography
-                      key={geo.rsmKey}
-                      geography={geo}
-                      onMouseEnter={() => handleMouseEnter(regionState, rName, isConfigured, activeEvents)}
-                      onMouseLeave={handleMouseLeave}
-                      onClick={() => handleRegionClick(regionState)}
-                      style={{
-                        default: {
-                          fill: currentFill,
-                          outline: "none",
-                          stroke: "#FFFFFF",
-                          strokeWidth: isLocked ? 2 : 1,
-                          filter: isLocked ? "drop-shadow(2px 6px 6px rgba(0,0,0,0.25))" : "none",
-                          transform: isLocked ? "translate(-2px, -4px)" : "translate(0px, 0px)",
-                          transition: "all 300ms ease"
-                        },
-                        hover: {
-                          fill: hoverHex, 
-                          outline: "none",
-                          stroke: "#FFFFFF",
-                          strokeWidth: 2,
-                          filter: "drop-shadow(3px 8px 10px rgba(0,0,0,0.4))",
-                          transform: "translate(-3px, -5px)",
-                          cursor: "pointer",
-                          transition: "all 250ms ease"
-                        },
-                        pressed: {
-                          fill: hoverHex,
-                          outline: "none",
-                          strokeWidth: 2,
-                          filter: "drop-shadow(1px 2px 2px rgba(0,0,0,0.5))",
-                          transform: "translate(-1px, -1px)",
-                          transition: "all 100ms ease"
-                        },
-                      }}
-                    />
-                  );
-                })
-              }
-            </Geographies>
-          </ComposableMap>
-        </div>
-
-        {/* Right Column - Showcase Card */}
-        <div className="w-full md:w-1/2 h-full flex flex-col justify-center">
-          {displayRegion && !('isEmpty' in displayRegion) ? (
-            <div className="flex flex-col w-full h-full bg-[#FAFAF8] border border-[#EAE5D9] rounded-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-500 relative">
-              {selectedRegion && selectedRegion.name === displayRegion.name && (
-                <button 
-                  onClick={() => setSelectedRegion(null)}
-                  className="absolute top-4 right-4 z-20 bg-black/40 hover:bg-black/60 text-white rounded-full p-1.5 transition-colors backdrop-blur-md"
-                  aria-label="Clear selection"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-              <div className="w-full flex overflow-x-auto snap-x snap-mandatory gap-4 mb-6 pb-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                <style dangerouslySetInnerHTML={{ __html: `div::-webkit-scrollbar { display: none; }` }} />
-                {displayRegion.images.map((imgSrc: string, idx: number) => (
-                  <div key={idx} className="relative flex-none w-[75%] sm:w-[65%] h-56 sm:h-64 lg:h-72 rounded-xl overflow-hidden shadow-md snap-center group">
-                    <Image 
-                      src={imgSrc} 
-                      alt={`${displayRegion.name} ${idx + 1}`}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent pointer-events-none"></div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="flex flex-col flex-grow justify-between">
-                <div>
-                  <h3 className="text-3xl font-serif text-[#2A3B2C] mb-3 tracking-wide">
-                    {displayRegion.name}
-                  </h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed text-sm lg:text-base">
-                    {displayRegion.description}
-                  </p>
-                </div>
-                
-                <div className="flex flex-col mt-auto">
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {displayRegion.events.map((event: string, i: number) => (
-                      <span 
-                        key={i}
-                        className="px-4 py-1.5 bg-[#D4AF37]/10 text-[#B8860B] text-xs font-bold uppercase tracking-wider rounded-lg border border-[#D4AF37]/20"
-                      >
-                        {event}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="mt-6 flex justify-center">
-                    <button 
-                      onClick={() => router.push(`/tours?location=${encodeURIComponent(displayRegion.name)}`)} 
-                      className="flex items-center justify-center gap-2 px-8 py-3.5 bg-[#2A3B2C] text-white rounded-full hover:bg-[#1A241B] transition-colors font-semibold shadow-xl shadow-[#2A3B2C]/20 tracking-wide cursor-pointer"
-                    >
-                      Explore {displayRegion.name} Tours
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : displayRegion && 'isEmpty' in displayRegion ? (
-            <div className="flex flex-col items-center justify-center text-center w-full h-full bg-[#FAFAF8] border border-[#EAE5D9] rounded-2xl p-8 gap-6 animate-in fade-in duration-500 relative">
-              {selectedRegion && selectedRegion.name === displayRegion.name && (
-                <button 
-                  onClick={() => setSelectedRegion(null)}
-                  className="absolute top-4 right-4 z-20 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-full p-1.5 transition-colors"
-                  aria-label="Clear selection"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-              <div className="mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-[4.5rem] w-[4.5rem] text-[#8B5A2B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  {/* Premium map/curation icon */}
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-3xl font-serif text-[#2A3B2C] max-w-xs">{displayRegion.name}</h3>
-              <p className="text-gray-500 max-w-sm leading-relaxed text-[15px]">We are currently curating authentic experiences in this region.<br/>Check back soon!</p>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center text-center w-full h-full bg-[#F9F8F6] border border-[#EAE5D9] rounded-2xl p-8 gap-8 animate-in fade-in duration-500">
-              <div className="animate-pulse flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-[#D4AF37]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  {/* Stylized compass/sun icon */}
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
-                </svg>
-              </div>
-              <div className="flex flex-col items-center space-y-3">
-                <span className="text-[10px] tracking-[0.3em] text-gray-400 font-semibold uppercase">
-                  Interactive Explorer
-                </span>
-                <h3 className="text-3xl font-serif text-[#2A3B2C] max-w-xs">
-                  Explore the roots of Ghana
-                </h3>
-              </div>
-              <p className="text-gray-500 max-w-sm leading-relaxed text-sm">
-                Hover over the interactive map to discover cultural images, experiences, and events across the regions.
+          {/* Left Column - Map & Heading */}
+          <div className="w-full md:w-1/2 relative flex flex-col items-center justify-center min-h-[350px] md:h-full overflow-hidden">
+            {/* Typography Overlay */}
+            <div className="absolute top-4 left-4 sm:top-0 sm:left-0 z-10 max-w-[280px] pointer-events-none">
+              <span className="text-[10px] tracking-[0.2em] text-gray-400 font-bold uppercase mb-1 block">The Motherland</span>
+              <h2 className="text-4xl sm:text-6xl font-serif text-[#1A2118] leading-tight mb-2">Ghana</h2>
+              <p className="text-gray-500 text-[13px] leading-relaxed pr-4 hidden sm:block">
+                Discover roots, culture, and rhythm across our diverse, breathtaking regions.
               </p>
             </div>
-          )}
+
+            <div className="w-full h-full flex items-center justify-center relative translate-y-4 md:translate-y-8">
+              <ComposableMap
+                projection="geoMercator"
+                projectionConfig={{
+                  scale: isMobile ? 6500 : 7800,
+                  center: isMobile ? [-1.2, 7.8] : [-1.5, 8.0],
+                }}
+                width={800}
+                height={800}
+                className="w-full h-full object-contain cursor-pointer"
+              >
+                <Geographies geography={geoUrl}>
+                  {({ geographies }: { geographies: any[] }) =>
+                    geographies.map((geo: any, index: number) => {
+                      const geoName = geo.properties.NAME_1;
+                      const dbName = geoToDbMap[geoName];
+                      const isActive = activeRegionDbNames.has(dbName);
+                      const isSelected = selectedRegion === geoName;
+                      
+                      const baseColor = regionColors[dbName] || premiumPalette[index % premiumPalette.length];
+                      let fill = isActive ? baseColor : "#E5E7EB";
+                      if (isSelected) fill = "#D4AF37";
+
+                      return (
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          onMouseEnter={(e) => handleMouseMove(e, geoName)}
+                          onMouseMove={(e) => handleMouseMove(e, geoName)}
+                          onMouseLeave={() => {
+                            setHoveredRegion(null);
+                            setTooltip(prev => ({ ...prev, show: false }));
+                          }}
+                          onClick={() => handleRegionClick(geoName)}
+                          style={{
+                            default: {
+                              fill: fill,
+                              outline: "none",
+                              stroke: "#FFFFFF",
+                              strokeWidth: isSelected ? 2 : 1,
+                              transition: "all 300ms ease"
+                            },
+                            hover: {
+                              fill: isActive ? fill : "#D1D5DB",
+                              outline: "none",
+                              stroke: "#FFFFFF",
+                              strokeWidth: 2,
+                              filter: isActive ? "drop-shadow(3px 8px 10px rgba(0,0,0,0.4))" : "none",
+                              transform: isActive ? "translate(-3px, -5px)" : "none",
+                              cursor: isActive ? "pointer" : "default",
+                              transition: "all 250ms ease"
+                            },
+                            pressed: {
+                              fill: "#B8860B",
+                              outline: "none",
+                              transform: "translate(-1px, -1px)"
+                            }
+                          }}
+                        />
+                      );
+                    })
+                  }
+                </Geographies>
+              </ComposableMap>
+
+              {/* Mobile Legend/Hint */}
+              <div className="absolute bottom-0 right-0 sm:hidden flex items-center gap-2 text-[10px] text-gray-400 font-medium">
+                <div className="w-2 h-2 rounded-full bg-[#D4AF37]"></div>
+                Active Regions
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Detail/Carousel */}
+          <div className="w-full md:w-1/2 flex flex-col min-h-[400px]">
+            <AnimatePresence mode="wait">
+              {currentTour ? (
+                <motion.div
+                  key={currentTour.slug}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex flex-col h-full bg-[#FAFAF8] border border-[#EAE5D9] rounded-2xl p-6 sm:p-8 relative"
+                >
+                  <button 
+                    onClick={() => { setSelectedRegion(null); setHoveredRegion(null); }}
+                    className="absolute top-4 right-4 z-20 bg-gray-200/50 hover:bg-gray-300 text-gray-600 rounded-full p-1 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <span className="text-[10px] tracking-[0.2em] text-[#B8860B] font-bold uppercase block mb-1">
+                        {formatRegionName(currentTour.region)}
+                      </span>
+                      <h3 className="text-2xl sm:text-3xl font-serif text-[#2A3B2C] leading-tight">
+                        {currentTour.title}
+                      </h3>
+                    </div>
+                    {regionTours.length > 1 && (
+                      <div className="flex items-center gap-2">
+                        <button onClick={prevTour} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                          <ChevronLeft className="w-5 h-5 text-gray-600" />
+                        </button>
+                        <span className="text-xs font-mono text-gray-400">
+                          {currentTourIndex + 1}/{regionTours.length}
+                        </span>
+                        <button onClick={nextTour} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                          <ChevronRight className="w-5 h-5 text-gray-600" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="relative w-full h-48 sm:h-64 rounded-xl overflow-hidden mb-6 shadow-md shadow-black/5">
+                    <Image
+                      src={currentTour.hero_image_url || "/images/hero-default.jpg"}
+                      alt={currentTour.title}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                  </div>
+
+                  <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-6 line-clamp-4">
+                    {currentTour.description_body}
+                  </p>
+
+                  <div className="mt-auto">
+                    <div className="flex flex-wrap gap-2 mb-8">
+                      {(currentTour.curated_inclusions as string[] || []).slice(0, 3).map((item, i) => (
+                        <span 
+                          key={i} 
+                          className="flex items-center gap-1.5 px-3 py-1 bg-white border border-[#EAE5D9] text-[#2A3B2C] text-[11px] font-semibold rounded-full"
+                        >
+                          <Sparkles className="w-3 h-3 text-[#D4AF37]" />
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => router.push(`/tours/${currentTour.slug}`)}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#2A3B2C] text-white rounded-full hover:bg-[#1A241B] transition-all font-semibold shadow-lg shadow-[#2A3B2C]/10 text-sm sm:text-base group"
+                    >
+                      Explore This Journey
+                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    </button>
+                  </div>
+                </motion.div>
+              ) : displayedRegion ? (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col items-center justify-center text-center h-full bg-[#FAFAF8] border border-[#EAE5D9] rounded-2xl p-8 gap-6"
+                >
+                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+                    <Compass className="w-8 h-8 text-gray-300" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-serif text-[#2A3B2C] mb-2">{formatRegionName(displayedRegion)}</h3>
+                    <p className="text-gray-500 text-sm max-w-xs mx-auto">
+                      We are currently curating authentic, high-end experiences for this region. Check back soon for updates.
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => { setSelectedRegion(null); setHoveredRegion(null); }}
+                    className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-widest"
+                  >
+                    <X className="w-4 h-4" /> Reset Map
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="default"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col items-center justify-center text-center h-full bg-[#F9F8F6] border border-[#EAE5D9] rounded-2xl p-8 gap-8"
+                >
+                  <div className="relative">
+                    <div className="absolute inset-0 animate-ping bg-[#D4AF37]/20 rounded-full"></div>
+                    <div className="relative w-16 h-16 rounded-full bg-white shadow-xl flex items-center justify-center">
+                      <Compass className="w-8 h-8 text-[#D4AF37]" />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] tracking-[0.3em] text-gray-400 font-semibold uppercase">Interactive Explorer</span>
+                      <h3 className="text-3xl font-serif text-[#2A3B2C]">Explore Ghana</h3>
+                    </div>
+                    <p className="text-gray-500 text-sm max-w-xs mx-auto leading-relaxed">
+                      Select a highlighted region on the map to discover curated heritage journeys and cultural experiences.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
-    </div>
 
-      {/* Mouse Tracking Tooltip */}
-      <div 
-        className={`fixed pointer-events-none z-50 bg-[#131A14]/40 backdrop-blur-2xl backdrop-saturate-200 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-2xl p-5 max-w-[240px] transition-opacity duration-200 ${tooltip.show ? 'opacity-100' : 'opacity-0'}`}
-        style={{ top: tooltip.y + 20, left: tooltip.x + 20 }}
-      >
-        <h4 className="font-serif text-xl text-white leading-tight mb-2 tracking-wide font-medium drop-shadow-md">
-          {tooltip.regionName}
-        </h4>
-        
-        {tooltip.isConfigured ? (
-          <div className="flex flex-col gap-2 mt-3">
-            <div className="h-[3px] w-8 bg-[#D4AF37]"></div>
-            {tooltip.events.map((ev, i) => (
-              <div key={i} className="flex items-start gap-2">
-                <span className="text-[#D4AF37] text-sm mt-0 text-bold drop-shadow-sm">★</span>
-                <span className="text-sm text-gray-100 leading-snug font-medium drop-shadow-sm">{ev}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-2">
-            <span className="inline-block px-2.5 py-1 bg-white/10 border border-white/10 rounded-lg text-[10px] uppercase tracking-wider text-white font-bold mb-2 shadow-sm">In Curation</span>
-            <p className="text-xs text-gray-200 italic leading-relaxed font-medium drop-shadow-sm">
-              We are actively developing premium experiences for this region.
-            </p>
-          </div>
-        )}
-      </div>
-
+      {/* Desktop Tooltip - Temporarily disabled to investigate positioning issues */}
+      {/* {!isMobile && tooltip.show && (
+        <div 
+          className="fixed pointer-events-none z-[9999] bg-black/85 backdrop-blur-xl border border-white/10 rounded-xl p-4 shadow-2xl transition-opacity animate-in fade-in duration-200 min-w-[200px]"
+          style={{ top: tooltip.y + 15, left: tooltip.x + 15 }}
+        >
+          <h4 className="font-serif text-lg text-white mb-2">{formatRegionName(tooltip.regionName)}</h4>
+          {tooltip.tours.length > 0 ? (
+            <div className="space-y-2">
+              <div className="h-[2px] w-6 bg-[#D4AF37] mb-2" />
+              {tooltip.tours.map((title, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs text-gray-100">
+                  <div className="w-1 h-1 rounded-full bg-[#D4AF37] mt-1.5 shrink-0" />
+                  <span className="font-medium">{title}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Curating Experiences</p>
+          )}
+        </div>
+      )} */}
     </section>
   );
 };

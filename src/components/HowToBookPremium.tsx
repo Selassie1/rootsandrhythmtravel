@@ -61,7 +61,7 @@ const HowToBookPremium = () => {
           </div>
           
           {/* Trust Badge */}
-          <div className="absolute -bottom-6 -right-6 bg-[#E8D3A2] text-[#1A241B] p-5 rounded-2xl shadow-xl border-4 border-[#131A14] z-20 flex flex-col justify-center items-center">
+          <div className="absolute -bottom-6 -right-4 sm:right-2 bg-[#E8D3A2] text-[#1A241B] p-5 rounded-2xl shadow-xl border-4 border-[#131A14] z-20 flex flex-col justify-center items-center">
             <span className="font-extrabold text-sm whitespace-nowrap tracking-wider uppercase">100% Secure</span>
             <span className="text-[10px] sm:text-[11px] font-bold opacity-80 uppercase tracking-widest mt-1">• Local Experts</span>
           </div>

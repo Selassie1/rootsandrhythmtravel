@@ -36,7 +36,7 @@ const MissionPhilosophy = () => {
           </div>
           
           {/* Secondary Image (The Overlap) */}
-          <div className="absolute -bottom-12 -right-12 w-1/2 h-1/2 z-20 border-8 border-[#FDFBF7] rounded-2xl overflow-hidden shadow-xl">
+          <div className="absolute -bottom-6 -right-4 sm:-bottom-12 sm:-right-12 w-1/2 h-1/2 z-20 border-4 sm:border-8 border-[#FDFBF7] rounded-2xl overflow-hidden shadow-xl">
             <Image 
               src="/images/Volta.jpeg" 
               alt="Authentic weaving" 

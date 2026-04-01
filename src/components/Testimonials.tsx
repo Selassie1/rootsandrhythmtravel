@@ -100,7 +100,7 @@ const Testimonials = () => {
                 key={t.id}
                 onClick={() => setActiveId(t.id)}
                 className={`relative overflow-hidden rounded-[2rem] cursor-pointer shadow-xl transition-[flex-grow] duration-[800ms] ease-[cubic-bezier(0.25,1,0.5,1)] flex flex-col justify-end group ${
-                  isActive ? "flex-[6_6_0%] md:flex-[7_7_0%]" : "flex-[1_1_0%] md:flex-[1_1_0%]"
+                  isActive ? "flex-[10_10_0%] md:flex-[7_7_0%]" : "flex-[1_1_0%] md:flex-[1_1_0%]"
                 }`}
               >
                 {/* Immersive Background Image Map */}
@@ -114,7 +114,7 @@ const Testimonials = () => {
                 {/* Smart Gradient Overlays - Cream wash for active, Dark green for inactive */}
                 <div 
                   className={`absolute inset-0 transition-colors duration-[800ms] ease-in-out ${
-                    isActive ? "bg-gradient-to-r from-white/80 via-white/70 to-[#E8D3A2]/50" : "bg-[#1A241B]/70 group-hover:bg-[#1A241B]/50"
+                    isActive ? "bg-gradient-to-r from-white/85 via-white/75 to-[#E8D3A2]/60" : "bg-[#1A241B]/70 group-hover:bg-[#1A241B]/50"
                   }`} 
                 />
 
@@ -125,7 +125,7 @@ const Testimonials = () => {
                   }`}
                 >
                   <img src={t.image} alt={t.name} className="w-10 h-10 md:w-14 md:h-14 rounded-full border-2 border-[#E8D3A2] object-cover shadow-2xl shrink-0" />
-                  <span className="text-white font-bold tracking-[0.2em] uppercase text-xs md:hidden mb-1">
+                  <span className="text-white font-bold tracking-[0.2em] uppercase text-[9px] sm:text-xs md:hidden mb-1 truncate max-w-[100px]">
                     {t.location}
                   </span>
                   <span className="text-white font-bold tracking-[0.3em] uppercase text-[10px] md:text-xs hidden md:block md:mb-6" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', whiteSpace: 'nowrap' }}>
@@ -135,12 +135,12 @@ const Testimonials = () => {
 
                 {/* Massive Hero Active State Data */}
                 <div 
-                  className={`relative z-20 p-8 md:p-12 lg:p-14 flex flex-col justify-end w-full h-full transition-opacity duration-700 ease-in overflow-hidden ${
+                  className={`relative z-20 p-6 sm:p-8 md:p-12 lg:p-14 flex flex-col justify-end w-full h-full transition-opacity duration-700 ease-in overflow-hidden ${
                     isActive ? "opacity-100 delay-300 pointer-events-auto" : "opacity-0 pointer-events-none hidden md:flex"
                   }`}
                 >
                   {/* Safely constrained fixed width so it seamlessly scales down without text clipping or aggressive wrap-glitches */}
-                  <div className="w-[280px] md:w-[400px] lg:w-[480px] xl:w-[600px] pr-4">
+                  <div className="w-full max-w-[260px] md:max-w-[400px] lg:max-w-[480px] xl:max-w-[600px] pr-4">
                     <span className="absolute -top-10 md:-top-16 left-2 md:left-6 text-[8rem] md:text-[10rem] font-serif text-[#E8D3A2]/40 leading-none pointer-events-none select-none">"</span>
                     
                     <p className="text-xl md:text-2xl lg:text-3xl text-[#1A241B] font-serif italic leading-relaxed md:leading-[1.4] mb-8 relative z-10 w-full pr-2">
