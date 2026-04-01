@@ -88,7 +88,7 @@ export async function getActiveTours() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('tours')
-    .select('title, slug, description_body, region, curated_inclusions, hero_image_url, duration_days, experience')
+    .select('title, slug, description_body, region, curated_inclusions, hero_image_url, duration_days, experience, ideal_for, travel_window')
     .eq('is_active', true);
 
   if (error) {

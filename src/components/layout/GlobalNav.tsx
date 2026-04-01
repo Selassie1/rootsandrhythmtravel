@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, User, X } from 'lucide-react';
+import { Globe, User, X, Map, Ticket, User as UserIcon, BookOpen, LogOut, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -173,16 +173,48 @@ export default function GlobalNav() {
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       className="absolute right-0 top-[110%] w-56 bg-[#1A241B] border border-white/10 rounded-2xl p-2 z-[60] shadow-2xl"
                     >
-                      <Link href="/dashboard" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-xl text-white font-bold text-xs uppercase tracking-widest transition-colors mb-1">
-                        Traveler Dashboard
+                      <div className="px-4 py-3 border-b border-white/5 mb-1">
+                        <p className="text-[10px] text-white/30 uppercase tracking-widest font-black mb-1">Authenticated As</p>
+                        <p className="text-white text-xs truncate font-mono">{user.email}</p>
+                      </div>
+
+                      <Link href="/dashboard?tab=upcoming" onClick={() => setIsProfileOpen(false)} className="flex items-center justify-between px-4 py-3 hover:bg-white/5 rounded-xl text-white font-bold text-[10px] uppercase tracking-widest transition-colors mb-1 group">
+                        <div className="flex items-center gap-3">
+                          <Map size={14} className="text-[#B8860B]" />
+                          <span>Upcoming Journeys</span>
+                        </div>
+                        <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                       </Link>
-                      <Link href="/dashboard/?tab=settings" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-xl text-white/50 hover:text-white font-bold text-xs uppercase tracking-widest transition-colors mb-1">
-                        Manage Identity
+
+                      <Link href="/dashboard?tab=history" onClick={() => setIsProfileOpen(false)} className="flex items-center justify-between px-4 py-3 hover:bg-white/5 rounded-xl text-white font-bold text-[10px] uppercase tracking-widest transition-colors mb-1 group">
+                        <div className="flex items-center gap-3">
+                          <Ticket size={14} className="text-[#B8860B]" />
+                          <span>Journey History</span>
+                        </div>
+                        <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                       </Link>
+
+                      <Link href="/dashboard?tab=resources" onClick={() => setIsProfileOpen(false)} className="flex items-center justify-between px-4 py-3 hover:bg-white/5 rounded-xl text-white font-bold text-[10px] uppercase tracking-widest transition-colors mb-1 group">
+                        <div className="flex items-center gap-3">
+                          <BookOpen size={14} className="text-[#B8860B]" />
+                          <span>Resource Vault</span>
+                        </div>
+                        <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                      </Link>
+
+                      <Link href="/dashboard?tab=settings" onClick={() => setIsProfileOpen(false)} className="flex items-center justify-between px-4 py-3 hover:bg-white/5 rounded-xl text-white font-bold text-[10px] uppercase tracking-widest transition-colors mb-1 group">
+                        <div className="flex items-center gap-3">
+                          <UserIcon size={14} className="text-[#B8860B]" />
+                          <span>Manage Identity</span>
+                        </div>
+                        <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                      </Link>
+
                       <div className="w-full h-px bg-white/5 my-1" />
                       <form action="/auth/signout" method="post" className="w-full m-0">
-                        <button type="submit" className="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-red-500/10 rounded-xl text-red-400 font-bold text-xs uppercase tracking-widest transition-colors cursor-pointer">
-                          Sign Out
+                        <button type="submit" className="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-red-500/10 rounded-xl text-red-400 font-bold text-[10px] uppercase tracking-widest transition-colors cursor-pointer group">
+                          <LogOut size={14} />
+                          <span>Sign Out</span>
                         </button>
                       </form>
                     </motion.div>
@@ -267,9 +299,22 @@ export default function GlobalNav() {
                 transition={{ duration: 0.4, delay: 0.5 }}
                 className="mt-12 flex flex-col gap-4 items-center"
               >
-                <Link href={user ? "/dashboard" : "/login"} onClick={() => setIsMenuOpen(false)} className="px-8 py-4 border border-white/20 text-white hover:bg-white hover:text-black rounded-full font-bold text-[10px] md:text-xs tracking-[0.2em] transition-all uppercase inline-flex items-center gap-3 cursor-pointer">
-                  <User size={16} /> {user ? "Access Dashboard" : "Sign In to Portal"}
-                </Link>
+                {user ? (
+                   <div className="flex flex-col gap-4 w-full">
+                     <Link href="/dashboard?tab=upcoming" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center gap-3 px-8 py-4 bg-[#B8860B] active:scale-95 text-black rounded-full font-bold text-xs tracking-[0.2em] transition-all uppercase shadow-xl">
+                        <Map size={18} /> My Dashboard
+                     </Link>
+                     <form action="/auth/signout" method="post" className="w-full m-0">
+                        <button type="submit" className="w-full flex items-center justify-center gap-3 px-8 py-4 border border-red-500/30 text-red-400 hover:bg-red-500/10 active:scale-95 rounded-full font-bold text-xs tracking-[0.2em] transition-all uppercase">
+                           <LogOut size={18} /> Sign Out
+                        </button>
+                     </form>
+                   </div>
+                ) : (
+                  <Link href="/login" onClick={() => setIsMenuOpen(false)} className="px-8 py-4 border border-white/20 text-white hover:bg-white hover:text-black rounded-full font-bold text-[10px] md:text-xs tracking-[0.2em] transition-all uppercase inline-flex items-center gap-3 cursor-pointer">
+                    <User size={16} /> Sign In to Portal
+                  </Link>
+                )}
               </motion.div>
             </div>
             

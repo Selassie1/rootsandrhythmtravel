@@ -129,14 +129,69 @@ function OverviewTab({ data, setTab }: { data: any, setTab: any }) {
   );
 }
 
+function RegistryPagination({ 
+  totalItems, 
+  itemsPerPage, 
+  currentPage, 
+  onPageChange 
+}: { 
+  totalItems: number, 
+  itemsPerPage: number, 
+  currentPage: number, 
+  onPageChange: (page: number) => void 
+}) {
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-6 border-t border-white/5 bg-black/10 gap-4">
+      <div className="text-white/40 text-[10px] uppercase tracking-widest font-black">
+        Showing <span className="text-white">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="text-white">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="text-[#B8860B]">{totalItems}</span> Entries
+      </div>
+      <div className="flex items-center gap-2">
+        <button 
+          disabled={currentPage === 1}
+          onClick={() => onPageChange(currentPage - 1)}
+          className="px-4 py-2 bg-white/5 hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-white/5 rounded-xl text-white transition-all text-[10px] uppercase font-black tracking-widest border border-white/10"
+        >
+          Previous
+        </button>
+        <div className="flex items-center gap-1">
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              onClick={() => onPageChange(i + 1)}
+              className={`w-9 h-9 rounded-xl text-[10px] font-black border transition-all ${currentPage === i + 1 ? 'bg-[#B8860B] border-[#B8860B] text-black shadow-[0_0_15px_rgba(184,134,11,0.3)]' : 'bg-white/5 border-white/10 text-white/40 hover:text-white hover:bg-white/10'}`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+        <button 
+          disabled={currentPage === totalPages}
+          onClick={() => onPageChange(currentPage + 1)}
+          className="px-4 py-2 bg-white/5 hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-white/5 rounded-xl text-white transition-all text-[10px] uppercase font-black tracking-widest border border-white/10"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ToursTab({ tours, setTab, setEditId }: { tours: any[], setTab: any, setEditId: any }) {
   const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const filteredTours = useMemo(() => {
-     if (!query) return tours;
      const lower = query.toLowerCase();
-     return tours.filter(t => t.title?.toLowerCase().includes(lower) || t.location?.toLowerCase().includes(lower) || t.slug?.toLowerCase().includes(lower));
+     return tours.filter(t => !query || t.title?.toLowerCase().includes(lower) || t.location?.toLowerCase().includes(lower) || t.slug?.toLowerCase().includes(lower));
   }, [tours, query]);
+
+  const pagedItems = useMemo(() => {
+    return filteredTours.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  }, [filteredTours, page]);
 
   return (
     <div className="p-8 pb-32 w-full max-w-7xl mx-auto flex flex-col gap-8 fade-in h-min">
@@ -178,7 +233,7 @@ function ToursTab({ tours, setTab, setEditId }: { tours: any[], setTab: any, set
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredTours.map((tour: any) => (
+              {pagedItems.map((tour: any) => (
                 <tr key={tour.id} className="hover:bg-white/[0.02] transition-colors group">
                   <td className="py-5 px-6">
                     <div className="flex items-center gap-4">
@@ -233,6 +288,12 @@ function ToursTab({ tours, setTab, setEditId }: { tours: any[], setTab: any, set
             </tbody>
           </table>
         </div>
+        <RegistryPagination 
+          totalItems={filteredTours.length} 
+          itemsPerPage={itemsPerPage} 
+          currentPage={page} 
+          onPageChange={setPage} 
+        />
       </div>
     </div>
   );
@@ -240,11 +301,13 @@ function ToursTab({ tours, setTab, setEditId }: { tours: any[], setTab: any, set
 
 function BookingsTab({ bookings, onSelectBooking }: { bookings: any[], onSelectBooking: (b: any) => void }) {
   const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const filteredBookings = useMemo(() => {
-     if (!query) return bookings;
      const lower = query.toLowerCase();
      return bookings.filter(b => 
+        !query ||
         b.id.toLowerCase().includes(lower) || 
         b.profiles?.first_name?.toLowerCase().includes(lower) || 
         b.profiles?.last_name?.toLowerCase().includes(lower) || 
@@ -253,6 +316,10 @@ function BookingsTab({ bookings, onSelectBooking }: { bookings: any[], onSelectB
         b.tours?.title?.toLowerCase().includes(lower)
      );
   }, [bookings, query]);
+
+  const pagedItems = useMemo(() => {
+    return filteredBookings.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  }, [filteredBookings, page]);
 
   return (
     <div className="p-8 pb-32 w-full max-w-7xl mx-auto flex flex-col gap-8 fade-in min-h-[400px]">
@@ -287,7 +354,7 @@ function BookingsTab({ bookings, onSelectBooking }: { bookings: any[], onSelectB
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredBookings.map((booking: any) => (
+              {pagedItems.map((booking: any) => (
                 <tr 
                   key={booking.id} 
                   className="hover:bg-white/[0.02] transition-colors group cursor-pointer" 
@@ -337,6 +404,12 @@ function BookingsTab({ bookings, onSelectBooking }: { bookings: any[], onSelectB
             </tbody>
           </table>
         </div>
+        <RegistryPagination 
+          totalItems={filteredBookings.length} 
+          itemsPerPage={itemsPerPage} 
+          currentPage={page} 
+          onPageChange={setPage} 
+        />
       </div>
     </div>
   );
@@ -344,12 +417,17 @@ function BookingsTab({ bookings, onSelectBooking }: { bookings: any[], onSelectB
 
 function UsersTab({ users }: { users: any[] }) {
   const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const filteredUsers = useMemo(() => {
-     if (!query) return users;
      const lower = query.toLowerCase();
-     return users.filter(u => u.first_name?.toLowerCase().includes(lower) || u.last_name?.toLowerCase().includes(lower) || u.email?.toLowerCase().includes(lower) || u.id.toLowerCase().includes(lower));
+     return users.filter(u => !query || u.first_name?.toLowerCase().includes(lower) || u.last_name?.toLowerCase().includes(lower) || u.email?.toLowerCase().includes(lower) || u.id.toLowerCase().includes(lower));
   }, [users, query]);
+
+  const pagedItems = useMemo(() => {
+     return filteredUsers.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  }, [filteredUsers, page]);
 
   return (
     <div className="p-8 pb-32 w-full max-w-7xl mx-auto flex flex-col gap-8 fade-in h-min">
@@ -382,7 +460,7 @@ function UsersTab({ users }: { users: any[] }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredUsers.map((user: any) => (
+              {pagedItems.map((user: any) => (
                 <tr key={user.id} className="hover:bg-white/[0.02] transition-colors group">
                   <td className="py-5 px-6">
                     <div className="flex items-center gap-4">
@@ -426,6 +504,12 @@ function UsersTab({ users }: { users: any[] }) {
             </tbody>
           </table>
         </div>
+        <RegistryPagination 
+          totalItems={filteredUsers.length} 
+          itemsPerPage={itemsPerPage} 
+          currentPage={page} 
+          onPageChange={setPage} 
+        />
       </div>
     </div>
   );
@@ -433,12 +517,17 @@ function UsersTab({ users }: { users: any[] }) {
 
 function TicketsTab({ tickets }: { tickets: any[] }) {
   const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const filteredTickets = useMemo(() => {
-     if (!query) return tickets;
      const lower = query.toLowerCase();
-     return tickets.filter(t => t.id.toLowerCase().includes(lower) || t.subject?.toLowerCase().includes(lower) || t.profiles?.first_name?.toLowerCase().includes(lower) || t.profiles?.email?.toLowerCase().includes(lower));
+     return tickets.filter(t => !query || t.id.toLowerCase().includes(lower) || t.subject?.toLowerCase().includes(lower) || t.profiles?.first_name?.toLowerCase().includes(lower) || t.profiles?.email?.toLowerCase().includes(lower));
   }, [tickets, query]);
+
+  const pagedItems = useMemo(() => {
+    return filteredTickets.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  }, [filteredTickets, page]);
 
   return (
     <div className="p-8 pb-32 w-full max-w-7xl mx-auto flex flex-col gap-8 fade-in min-h-[500px]">
@@ -470,7 +559,7 @@ function TicketsTab({ tickets }: { tickets: any[] }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredTickets.map((ticket: any) => (
+              {pagedItems.map((ticket: any) => (
                 <tr key={ticket.id} className="hover:bg-white/[0.02] transition-colors group">
                   <td className="py-5 px-6">
                     <p className="text-white font-mono text-xs mb-1">{ticket.id.split('-').shift()?.toUpperCase()}</p>
@@ -504,6 +593,12 @@ function TicketsTab({ tickets }: { tickets: any[] }) {
             </tbody>
           </table>
         </div>
+        <RegistryPagination 
+          totalItems={filteredTickets.length} 
+          itemsPerPage={itemsPerPage} 
+          currentPage={page} 
+          onPageChange={setPage} 
+        />
       </div>
     </div>
   );
@@ -650,17 +745,23 @@ function TourFormTab({ initialData, setTab }: { initialData: any, setTab: (t: st
 
 function TransactionsTab({ transactions }: { transactions: any[] }) {
   const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const filtered = useMemo(() => {
-     if (!query) return transactions;
      const lower = query.toLowerCase();
      return transactions.filter(t => 
+        !query ||
         t.payment_reference?.toLowerCase().includes(lower) || 
         t.profiles?.first_name?.toLowerCase().includes(lower) || 
         t.profiles?.last_name?.toLowerCase().includes(lower) || 
         t.profiles?.email?.toLowerCase().includes(lower)
      );
   }, [transactions, query]);
+
+  const pagedItems = useMemo(() => {
+    return filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  }, [filtered, page]);
 
   return (
     <div className="p-8 pb-32 w-full max-w-7xl mx-auto flex flex-col gap-8 fade-in min-h-[500px]">
@@ -683,51 +784,59 @@ function TransactionsTab({ transactions }: { transactions: any[] }) {
 
       <div className="bg-[#1A241B] border border-white/5 rounded-[2rem] p-8 md:p-10 shadow-2xl relative overflow-hidden">
         {filtered.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[900px]">
-               <thead>
-                  <tr className="text-[10px] uppercase tracking-[0.2em] text-white/30 border-b border-white/5">
-                     <th className="pb-4 font-medium px-4">Date</th>
-                     <th className="pb-4 font-medium px-4">Traveler</th>
-                     <th className="pb-4 font-medium px-4">Description</th>
-                     <th className="pb-4 font-medium px-4">Reference</th>
-                     <th className="pb-4 font-medium px-4 text-right">Amount</th>
-                  </tr>
-               </thead>
-               <tbody className="divide-y divide-white/5">
-                  {filtered.map((tx: any) => (
-                     <tr key={tx.id} className="text-xs group hover:bg-white/[0.02] transition-colors">
-                        <td className="py-6 px-4 text-white/50 whitespace-nowrap">{new Date(tx.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                        <td className="py-6 px-4">
-                           <div className="flex flex-col">
-                              <span className="text-white font-serif text-sm">{tx.profiles?.first_name} {tx.profiles?.last_name}</span>
-                              <span className="text-white/30 text-[10px] font-mono">{tx.profiles?.email}</span>
-                           </div>
-                        </td>
-                        <td className="py-6 px-4">
-                           <div className="flex flex-col">
-                              <span className={`text-[10px] uppercase font-bold tracking-widest ${tx.payment_type === 'DEPOSIT' ? 'text-blue-400' : tx.payment_type === 'BALANCE' ? 'text-[#B8860B]' : 'text-green-400'}`}>
-                                 {tx.payment_type} Settlement
-                              </span>
-                              <span className="text-white/20 text-[9px] uppercase tracking-widest mt-1">Status: {tx.status}</span>
-                           </div>
-                        </td>
-                        <td className="py-6 px-4">
-                            <div className="flex flex-col">
-                                <span className="text-white/40 font-mono text-[10px]">{tx.payment_reference}</span>
-                                {tx.bookings?.paystack_reference && (
-                                    <span className="text-white/20 text-[9px] uppercase tracking-tighter">Linked Booking Ref: {tx.bookings.paystack_reference}</span>
-                                )}
-                            </div>
-                        </td>
-                        <td className="py-6 px-4 text-right">
-                           <span className="text-[#E8D3A2] font-mono font-bold text-base">$ {tx.amount.toLocaleString()}</span>
-                        </td>
-                     </tr>
-                  ))}
-               </tbody>
-            </table>
-          </div>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[900px]">
+                 <thead>
+                    <tr className="text-[10px] uppercase tracking-[0.2em] text-white/30 border-b border-white/5">
+                       <th className="pb-4 font-medium px-4">Date</th>
+                       <th className="pb-4 font-medium px-4">Traveler</th>
+                       <th className="pb-4 font-medium px-4">Description</th>
+                       <th className="pb-4 font-medium px-4">Reference</th>
+                       <th className="pb-4 font-medium px-4 text-right">Amount</th>
+                    </tr>
+                 </thead>
+                 <tbody className="divide-y divide-white/5">
+                    {pagedItems.map((tx: any) => (
+                       <tr key={tx.id} className="text-xs group hover:bg-white/[0.02] transition-colors">
+                          <td className="py-6 px-4 text-white/50 whitespace-nowrap">{new Date(tx.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                          <td className="py-6 px-4">
+                             <div className="flex flex-col">
+                                <span className="text-white font-serif text-sm">{tx.profiles?.first_name} {tx.profiles?.last_name}</span>
+                                <span className="text-white/30 text-[10px] font-mono">{tx.profiles?.email}</span>
+                             </div>
+                          </td>
+                          <td className="py-6 px-4">
+                             <div className="flex flex-col">
+                                <span className={`text-[10px] uppercase font-bold tracking-widest ${tx.payment_type === 'DEPOSIT' ? 'text-blue-400' : tx.payment_type === 'BALANCE' ? 'text-[#B8860B]' : 'text-green-400'}`}>
+                                   {tx.payment_type} Settlement
+                                </span>
+                                <span className="text-white/20 text-[9px] uppercase tracking-widest mt-1">Status: {tx.status}</span>
+                             </div>
+                          </td>
+                          <td className="py-6 px-4">
+                              <div className="flex flex-col">
+                                  <span className="text-white/40 font-mono text-[10px]">{tx.payment_reference}</span>
+                                  {tx.bookings?.paystack_reference && (
+                                      <span className="text-white/20 text-[9px] uppercase tracking-tighter">Linked Booking Ref: {tx.bookings.paystack_reference}</span>
+                                  )}
+                              </div>
+                          </td>
+                          <td className="py-6 px-4 text-right">
+                             <span className="text-[#E8D3A2] font-mono font-bold text-base">$ {tx.amount.toLocaleString()}</span>
+                          </td>
+                       </tr>
+                    ))}
+                 </tbody>
+              </table>
+            </div>
+            <RegistryPagination 
+               totalItems={filtered.length} 
+               itemsPerPage={itemsPerPage} 
+               currentPage={page} 
+               onPageChange={setPage} 
+            />
+          </>
         ) : (
           <div className="py-20 text-center">
              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
