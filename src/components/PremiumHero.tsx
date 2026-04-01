@@ -8,9 +8,9 @@ import Image from 'next/image';
 import VerticalGreetings from './VerticalGreetings';
 
 const destinations = [
-  { id: 1, name: "Kintampo Waterfalls", videoSrc: "/videos/kintampo.mp4", thumbnailSrc: "/images/kintampo.jpeg" },
-  { id: 2, name: "Adomi Bridge", videoSrc: "/videos/adomi.mp4", thumbnailSrc: "/images/adomi.jpeg" },
-  { id: 3, name: "Aburi Gardens", videoSrc: "/videos/aburi.mp4", thumbnailSrc: "/images/aburi.png" }
+  { id: 1, name: "Kintampo Waterfalls", videoSrc: "https://ovvtrasavonyhsidimci.supabase.co/storage/v1/object/public/media/kintampo.mp4", thumbnailSrc: "/images/kintampo.jpg" },
+  { id: 2, name: "Adomi Bridge", videoSrc: "https://ovvtrasavonyhsidimci.supabase.co/storage/v1/object/public/media/adomi.mp4", thumbnailSrc: "/images/adomi.jpg" },
+  { id: 3, name: "Aburi Gardens", videoSrc: "https://ovvtrasavonyhsidimci.supabase.co/storage/v1/object/public/media/aburi.mp4", thumbnailSrc: "/images/aburi.jpg" }
 ];
 
 export default function PremiumHero() {
@@ -69,6 +69,8 @@ export default function PremiumHero() {
             muted
             loop
             playsInline
+            preload="metadata"
+            poster={currentDest.thumbnailSrc}
             className="object-cover w-full h-full opacity-60"
           >
             <source src={currentDest.videoSrc} type="video/mp4" />

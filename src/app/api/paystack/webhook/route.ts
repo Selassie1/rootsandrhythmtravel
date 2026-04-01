@@ -36,11 +36,22 @@ export async function POST(req: NextRequest) {
       const data = event.data;
       
       const reference = data.reference;
-      const amountPaid = data.amount / 100; // Return to standard Cedis
+      const amountGHS = data.amount / 100; // Raw pesewas to GHS
       const customerEmail = data.customer.email;
       
-      const metadata = data.metadata.custom_fields || [];
-      const extractMeta = (varName: string) => metadata.find((f: any) => f.variable_name === varName)?.value || '';
+      // Robust Metadata Extraction (Handle both Object and Stringified Meta)
+      let metadata = data.metadata || {};
+      if (typeof metadata === 'string') {
+        try { metadata = JSON.parse(metadata); } catch (e) { metadata = {}; }
+      }
+      
+      const customFields = metadata.custom_fields || [];
+      const extractMeta = (varName: string) => {
+         // Priority 1: Top-level metadata key (Reliable)
+         if (metadata[varName] !== undefined && metadata[varName] !== null) return String(metadata[varName]);
+         // Priority 2: custom_fields array (Legacy/Display fallback)
+         return customFields.find((f: any) => f.variable_name === varName)?.value || '';
+      };
 
       const tourId = extractMeta('tour_id');
       const travelDate = extractMeta('travel_date');
@@ -50,22 +61,70 @@ export async function POST(req: NextRequest) {
       const guestPhone = extractMeta('guest_phone');
       const bookingId = extractMeta('booking_id');
 
+      // USD AMOUNT RESOLUTION: Separate tour value (no fees) from charged amount (with fees)
+      const USD_TO_GHS_RATE = 13.5;
+      const metaChargedAmountUSD = parseFloat(extractMeta('total_amount_usd'));   // What Paystack charged (with 3.9% fee)
+      const metaFullPriceUSD = parseFloat(extractMeta('total_full_price_usd'));   // Full tour cost (no fees)
+      const metaTourValuePaidUSD = parseFloat(extractMeta('tour_value_paid_usd')); // Tour value being paid now (no fees)
+      
+      // Charged amount: what customer paid via Paystack (fee-inclusive) — for transaction ledger
+      const chargedAmountUSD = !isNaN(metaChargedAmountUSD) ? metaChargedAmountUSD : (amountGHS / USD_TO_GHS_RATE);
+      // Tour value paid: the actual tour cost being covered (fee-free) — for booking amount_paid
+      const tourValuePaidUSD = !isNaN(metaTourValuePaidUSD) ? metaTourValuePaidUSD : (chargedAmountUSD / 1.039); 
+      // Full trip price: total tour cost (fee-free) — for booking total_price
+      const fullTripPriceUSD = !isNaN(metaFullPriceUSD) ? metaFullPriceUSD : tourValuePaidUSD;
+      
+      console.log('Webhook: Amount Resolution =>', { 
+         amountGHS, chargedAmountUSD, tourValuePaidUSD, fullTripPriceUSD,
+         meta: { metaChargedAmountUSD, metaFullPriceUSD, metaTourValuePaidUSD },
+         ids: { bookingId, tourId }
+      });
+
       // 4. Secure DB Operations utilizing Service Role to legally bypass Front-End RLS checks
       const supabaseAdmin = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY! // Required to create Ghost Accounts and insert Bookings from Webhook safely
       );
 
-      // A: Auto-generate the Ghost Account if it doesn't exist
-      let targetUserId = null;
+      // DEDUP CHECK: If the verify page already created this booking, skip entirely
+      const { data: existingBooking } = await supabaseAdmin.from('bookings').select('id, user_id').eq('paystack_reference', reference).single();
+      
+      if (existingBooking) {
+         console.log('Webhook: Booking already exists for reference', reference, '- skipping duplicate insert.');
+         
+         // Still log the transaction if it doesn't exist yet
+         const { data: existingTx } = await supabaseAdmin.from('payment_transactions').select('id').eq('payment_reference', reference).single();
+         if (!existingTx) {
+            await supabaseAdmin.from('payment_transactions').insert({
+               user_id: existingBooking.user_id || null,
+               booking_id: existingBooking.id,
+               amount: chargedAmountUSD,
+               currency: 'USD',
+               payment_reference: reference,
+               status: 'success',
+               payment_type: paymentOption === 'pay_deposit' ? 'DEPOSIT' : (paymentOption === 'pay_balance' ? 'BALANCE' : 'FULL'),
+               metadata: data
+            }).then(({ error }) => { if (error) console.error('Webhook tx insert error:', error); });
+         }
+         return NextResponse.json({ status: "success", message: "Booking already processed by verify page." });
+      }
+
+      // A: Resolve user identity — Priority: metadata user_id > auth email lookup > ghost account creation
+      const metadataUserId = extractMeta('user_id');
+      let targetUserId: string | null = (metadataUserId && metadataUserId.trim() !== '') ? metadataUserId : null;
       let isNewAccount = false;
       let magicLinkUrl = null;
       
-      const { data: userSearch } = await supabaseAdmin.from('profiles').select('id').eq('email', customerEmail).single();
-      
-      if (userSearch) {
-         targetUserId = userSearch.id;
-      } else {
+      // If no userId from metadata, search auth.users by email (NOT profiles table which has no email column)
+      if (!targetUserId) {
+         const { data: authListData } = await supabaseAdmin.auth.admin.listUsers();
+         const matchedUser = authListData?.users?.find(u => u.email === customerEmail);
+         if (matchedUser) {
+            targetUserId = matchedUser.id;
+         }
+      }
+
+      if (!targetUserId) {
          // Create Ghost Profile User (Admin Only Action)
          const { data: authCreation } = await supabaseAdmin.auth.admin.createUser({
             email: customerEmail,
@@ -95,48 +154,69 @@ export async function POST(req: NextRequest) {
       }
 
       // B: Execute Database Booking Operations
-      if (bookingId) {
+      let resolvedBookingId: string | null = bookingId && bookingId.trim() !== '' ? bookingId : null;
+       
+      if (resolvedBookingId) {
          // This is a BALANCE payment for an existing booking
-         const { data: currentBooking } = await supabaseAdmin.from('bookings').select('amount_paid, total_price').eq('id', bookingId).single();
+         // Dedup: Check if verify page already processed this balance payment
+         const { data: existingBalanceTx } = await supabaseAdmin.from('payment_transactions').select('id').eq('payment_reference', reference).single();
+         if (existingBalanceTx) {
+            console.log('Webhook: Balance payment already processed for reference', reference);
+            return NextResponse.json({ status: "success", message: "Balance already processed by verify page." });
+         }
+         
+         const { data: currentBooking } = await supabaseAdmin.from('bookings').select('amount_paid, total_price').eq('id', resolvedBookingId).single();
          
          if (currentBooking) {
-            const newAmountPaid = (currentBooking.amount_paid || 0) + amountPaid;
-            const newStatus = newAmountPaid >= currentBooking.total_price ? 'COMPLETED' : 'DEPOSIT_PAID';
+            // Add the TOUR VALUE (fee-free) to amount_paid, not the Paystack charge
+            const newAmountPaid = (Number(currentBooking.amount_paid) || 0) + tourValuePaidUSD;
+            const newStatus = newAmountPaid >= (Number(currentBooking.total_price) || 0) ? 'FULLY_PAID' : 'DEPOSIT_PAID';
+            
+            console.log('Webhook: Balance update =>', { previousPaid: currentBooking.amount_paid, tourValueAdded: tourValuePaidUSD, newAmountPaid, newStatus });
             
             await supabaseAdmin.from('bookings').update({
                amount_paid: newAmountPaid,
                payment_status: newStatus
-            }).eq('id', bookingId);
+            }).eq('id', resolvedBookingId);
          }
       } else {
-         // This is a NEW booking
-         const { error: dbError } = await supabaseAdmin.from('bookings').insert({
+         // This is a NEW booking — include all guest contact details
+         // total_price = full trip cost (no fees), amount_paid = tour value paid now (no fees)
+         const { data: newBooking, error: dbError } = await supabaseAdmin.from('bookings').insert({
             user_id: targetUserId,
+            guest_name: guestName,
+            guest_email: customerEmail,
+            guest_phone: guestPhone,
             tour_id: tourId === 'test-1234' ? null : tourId,
             travel_dates: travelDate,
             travelers_count: passengerCount,
-            total_price: paymentOption === 'pay_deposit' ? (amountPaid * 4) : amountPaid, // Rough estimate if full price not passed, but usually total_price should be explicit. 
-            // Better: In initial checkout, total_price is set. In guest checkout we might need to be careful.
-            amount_paid: amountPaid,
-            payment_status: paymentOption === 'pay_deposit' ? 'DEPOSIT_PAID' : 'COMPLETED',
+            total_price: fullTripPriceUSD,
+            amount_paid: tourValuePaidUSD,
+            payment_status: paymentOption === 'pay_deposit' ? 'DEPOSIT_PAID' : 'FULLY_PAID',
             paystack_reference: reference
-         });
+         }).select('id').single();
 
          if (dbError) {
             console.error("Booking Table Insertion Error:", dbError);
             return NextResponse.json({ error: "Failed hooking payment to ticket" }, { status: 500 });
          }
+         
+         // Capture the new booking's actual DB ID for the transaction insert
+         resolvedBookingId = newBooking?.id || null;
+         console.log('Webhook: New booking created with ID:', resolvedBookingId);
       }
 
       // C: Log the Transaction to the dedicated Ledger
+      // Transaction amount = what was actually CHARGED to the customer (fee-inclusive USD)
+      const isBalancePayment = bookingId && bookingId.trim() !== '';
       const { error: txError } = await supabaseAdmin.from('payment_transactions').insert({
          user_id: targetUserId,
-         booking_id: bookingId || null,
-         amount: amountPaid,
+         booking_id: resolvedBookingId,
+         amount: chargedAmountUSD,
          currency: 'USD',
          payment_reference: reference,
          status: 'success',
-         payment_type: bookingId ? 'BALANCE' : (paymentOption === 'pay_deposit' ? 'DEPOSIT' : 'FULL'),
+         payment_type: isBalancePayment ? 'BALANCE' : (paymentOption === 'pay_deposit' ? 'DEPOSIT' : 'FULL'),
          metadata: data
       });
 

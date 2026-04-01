@@ -20,10 +20,19 @@ export default function DashboardClient({ user, profile, bookings, recentTours =
   const initiateBalancePayment = async (booking: any) => {
     setIsProcessing(booking.id);
     try {
-      const balance = booking.total_price - booking.amount_paid;
-      // Apply 3.9% fee
+      // Remaining tour cost (both total_price and amount_paid are stored without fees)
+      const remainingTourCost = Number(booking.total_price || 0) - Number(booking.amount_paid || 0);
+      // Apply 3.9% Paystack international fee for what we charge the customer
       const internationalFee = 0.039;
-      const grandTotal = Math.round((balance / (1 - internationalFee)) * 100) / 100;
+      const grandTotal = Math.round((remainingTourCost / (1 - internationalFee)) * 100) / 100;
+
+      if (isNaN(grandTotal) || grandTotal <= 0) {
+        alert("Unable to calculate valid balance. Please contact support.");
+        console.error("Invalid balance calculation:", { remainingTourCost, grandTotal });
+        return;
+      }
+
+      console.log("Initiating Balance Settlement for:", { bookingId: booking.id, tourBalance: remainingTourCost, chargeAmount: grandTotal });
 
       const resp = await fetch('/api/paystack/initialize', {
         method: 'POST',
@@ -32,21 +41,25 @@ export default function DashboardClient({ user, profile, bookings, recentTours =
            bookingId: booking.id,
            tourId: booking.tour_id,
            tourName: booking.tours?.title || 'Tour Balance',
-           paymentOption: 'pay_full', // Settling the remaining
+           paymentOption: 'pay_balance',
            travelDate: booking.travel_dates,
            passengers: booking.travelers_count,
            totalAmount: grandTotal,
+           totalFullPrice: booking.total_price,
+           tourValuePaid: remainingTourCost,
            guestEmail: user.email,
            guestName: `${firstName} ${lastName}`,
+           guestPhone: profile?.phone || user.user_metadata?.phone || '',
            userId: user.id
         })
       });
 
-      const { authorization_url } = await resp.json();
-      if (authorization_url) {
-        window.location.href = authorization_url;
+      const data = await resp.json();
+      if (data.authorization_url) {
+        window.location.href = data.authorization_url;
       } else {
-        alert("Payment initialization failed.");
+        alert("Payment initialization failed: " + (data.error || "Internal Server Error"));
+        console.error("Paystack Error:", data);
       }
     } catch (err) {
       console.error(err);
@@ -136,7 +149,7 @@ export default function DashboardClient({ user, profile, bookings, recentTours =
                                  <span className="text-white/90 text-sm font-light">{booking.travelers_count} Guest(s)</span>
                               </div>
                               <div className="flex flex-col">
-                                 <span className="text-white/40 text-[9px] uppercase tracking-[0.2em] font-medium mb-1">Investment</span>
+                                 <span className="text-white/40 text-[9px] uppercase tracking-[0.2em] font-medium mb-1">Total amount</span>
                                  <span className="text-white/90 text-sm font-light">$ {booking.total_price?.toLocaleString()}</span>
                               </div>
                             </div>

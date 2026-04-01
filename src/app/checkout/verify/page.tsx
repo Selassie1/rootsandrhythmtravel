@@ -1,8 +1,12 @@
+// src/app/checkout/verify/page.tsx
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import VerifyReceiptClient from './VerifyReceiptClient';
 import { createClient } from '@supabase/supabase-js';
+import { createClient as createServerClient } from '@/utils/supabase/server';
+
+export const dynamic = 'force-dynamic';
 
 export default async function CheckoutVerifyPage({ 
   searchParams 
@@ -18,74 +22,269 @@ export default async function CheckoutVerifyPage({
 
   // Execute precise Server-Side rendering directly pinging Paystack bypassing Webhook limits 
   // (Ensuring UI perfectly loads local testing data even if webhooks fail due to localhost domain drops)
-  if (reference) {
-     try {
-        const response = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
-           headers: {
-              Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-           },
-           next: { revalidate: 0 } 
-        });
-        const payload = await response.json();
-        
-        if (payload.status) {
-           transactionData = payload.data;
-           
-           // Explicit Localhost Environment Backup Insertion!
-           const supabaseAdmin = createClient(
-              process.env.NEXT_PUBLIC_SUPABASE_URL!,
-              process.env.SUPABASE_SERVICE_ROLE_KEY!
-           );
-           
-           const extractMeta = (varName: string) => transactionData.metadata?.custom_fields?.find((f: any) => f.variable_name === varName)?.value || '';
-           const tourId = extractMeta('tour_id');
-           const userId = extractMeta('user_id');
-           const travelDate = extractMeta('travel_date');
-           const passengers = parseInt(extractMeta('passengers')) || 1;
-           const paymentOption = extractMeta('payment_option');
-           const customerEmail = transactionData.customer.email;
-           const guestName = extractMeta('guest_name');
-           const guestPhone = extractMeta('guest_phone');
+   if (reference) {
+      try {
+         // STRATEGY 1: Resolve the authenticated user from the LIVE server session (most reliable)
+         // This catches logged-in users whose ID may not survive the Paystack metadata roundtrip
+         let sessionUserId: string | null = null;
+         try {
+            const supabaseServer = await createServerClient();
+            const { data: { user: sessionUser } } = await supabaseServer.auth.getUser();
+            if (sessionUser?.id) {
+               sessionUserId = sessionUser.id;
+               console.log('Verify: Authenticated session user found:', sessionUserId);
+            }
+         } catch (sessionErr) {
+            console.warn('Verify: Could not resolve session user (guest checkout):', sessionErr);
+         }
 
-           const { data: existingBooking } = await supabaseAdmin.from('bookings').select('id').eq('paystack_reference', reference).single();
-           
-           if (!existingBooking && tourId && tourId !== 'test-1234') {
-               // Execute Insertion with graceful fallback for identity parsing
-               const { error: insertErr } = await supabaseAdmin.from('bookings').insert({
-                  user_id: userId || null, // Allow NULL to bypass strict foreign key lock if the user has no public profiles row
-                  guest_name: guestName,
-                  guest_email: customerEmail,
-                  guest_phone: guestPhone,
-                  tour_id: tourId,
-                  travel_dates: travelDate,
-                  travelers_count: passengers,
-                  total_price: (transactionData.amount / 100) / 13.5, 
-                  amount_paid: (transactionData.amount / 100) / 13.5,
-                  payment_status: paymentOption === 'pay_deposit' ? 'DEPOSIT_PAID' : 'FULLY_PAID',
-                  paystack_reference: reference
-               });
-               
-               if (insertErr) {
-                   console.error("Booking Table Insert Aggressive Error:", insertErr);
-                   
-                   // Second-Pass attempt: If the foreign key on user_id blocked it because their Profile is missing, try inserting completely anonymously
-                   if (insertErr.code === '23503' && userId) {
-                       console.warn("Foreign Key Violation Detected. Falling back to Anonymous Guest Ledger.");
-                       await supabaseAdmin.from('bookings').insert({
-                          user_id: null,
-                          guest_name: guestName,
-                          guest_email: customerEmail,
-                          guest_phone: guestPhone,
-                          tour_id: tourId,
-                          travel_dates: travelDate,
-                          travelers_count: passengers,
-                          total_price: (transactionData.amount / 100) / 13.5, 
-                          amount_paid: (transactionData.amount / 100) / 13.5,
-                          payment_status: paymentOption === 'pay_deposit' ? 'DEPOSIT_PAID' : 'FULLY_PAID',
-                          paystack_reference: reference
-                       });
-                   }
+         const response = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
+            headers: {
+               Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+            },
+            next: { revalidate: 0 } 
+         });
+         const payload = await response.json();
+         
+         if (payload.status) {
+            transactionData = payload.data;
+            
+            // Service Role client bypasses RLS for atomic booking insertion
+            const supabaseAdmin = createClient(
+               process.env.NEXT_PUBLIC_SUPABASE_URL!,
+               process.env.SUPABASE_SERVICE_ROLE_KEY!
+            );
+            
+            const extractMeta = (varName: string) => {
+               let metadata = transactionData.metadata || {};
+               if (typeof metadata === 'string') {
+                  try { metadata = JSON.parse(metadata); } catch (e) { metadata = {}; }
                }
+               // Priority 1: Top-level metadata key (Reliable)
+               if (metadata[varName] !== undefined && metadata[varName] !== null) return String(metadata[varName]);
+               // Priority 2: custom_fields array (Legacy/Display fallback)
+               return (metadata.custom_fields || [])?.find((f: any) => f.variable_name === varName)?.value || '';
+            };
+
+            const tourId = extractMeta('tour_id');
+            const metadataUserId = extractMeta('user_id');
+            const travelDate = extractMeta('travel_date');
+            const passengers = parseInt(extractMeta('passengers')) || 1;
+            const paymentOption = extractMeta('payment_option');
+            const customerEmail = transactionData.customer.email;
+            const guestName = extractMeta('guest_name');
+            const guestPhone = extractMeta('guest_phone');
+
+            const { data: existingBooking } = await supabaseAdmin.from('bookings').select('id, user_id, total_price').eq('paystack_reference', reference).single();
+            
+            if (existingBooking) {
+               // Resolve correct USD amounts for potential patching
+               const USD_TO_GHS_RATE = 13.5;
+               const metaTotalAmountUSD = parseFloat(extractMeta('total_amount_usd'));
+               const metaFullPriceUSD = parseFloat(extractMeta('total_full_price_usd'));
+               const patchAmountUSD = !isNaN(metaTotalAmountUSD) ? metaTotalAmountUSD : ((transactionData.amount / 100) / USD_TO_GHS_RATE);
+               const patchFullPriceUSD = !isNaN(metaFullPriceUSD) ? metaFullPriceUSD : patchAmountUSD;
+               
+               // Build patch object: fix user identity, amounts, and contact details
+               const patchUserId = sessionUserId || (metadataUserId && metadataUserId.trim() !== '' ? metadataUserId : null);
+               const patchData: Record<string, any> = {};
+               
+               // Patch user identity if missing
+               if (!existingBooking.user_id && patchUserId) {
+                  patchData.user_id = patchUserId;
+               }
+               // Patch guest details if missing
+               if (guestName) patchData.guest_name = guestName;
+               if (customerEmail) patchData.guest_email = customerEmail;
+               if (guestPhone) patchData.guest_phone = guestPhone;
+               // Patch amounts — fix if they look like GHS values (> 10x the expected USD amount)
+               if (existingBooking.total_price > patchFullPriceUSD * 5) {
+                  patchData.total_price = patchFullPriceUSD;
+                  patchData.amount_paid = patchAmountUSD;
+               }
+               
+               if (Object.keys(patchData).length > 0) {
+                  console.log('Verify: Patching existing webhook booking:', existingBooking.id, patchData);
+                  await supabaseAdmin.from('bookings').update(patchData).eq('id', existingBooking.id);
+               }
+               
+               // Fix orphaned payment_transactions that are missing booking_id or user_id
+               const resolvedUserId = patchUserId || existingBooking.user_id;
+               const { data: orphanedTx } = await supabaseAdmin.from('payment_transactions')
+                  .select('id, user_id, booking_id, amount')
+                  .eq('payment_reference', reference)
+                  .single();
+               
+               if (orphanedTx) {
+                  const txPatch: Record<string, any> = {};
+                  if (!orphanedTx.booking_id) txPatch.booking_id = existingBooking.id;
+                  if (!orphanedTx.user_id && resolvedUserId) txPatch.user_id = resolvedUserId;
+                  // Fix amount if it looks like GHS (> 10x expected USD)
+                  if (orphanedTx.amount > patchAmountUSD * 5) txPatch.amount = patchAmountUSD;
+                  
+                  if (Object.keys(txPatch).length > 0) {
+                     console.log('Verify: Patching orphaned transaction:', orphanedTx.id, txPatch);
+                     await supabaseAdmin.from('payment_transactions').update(txPatch).eq('id', orphanedTx.id);
+                  }
+               }
+            }
+            
+            // BALANCE PAYMENT CHECK: If booking_id is in the metadata, this is a balance settlement
+            const metaBookingId = extractMeta('booking_id');
+            if (metaBookingId && metaBookingId.trim() !== '' && !existingBooking) {
+               console.log('Verify: Balance payment detected for booking:', metaBookingId);
+               
+               const USD_TO_GHS_RATE = 13.5;
+               const metaChargedAmountUSD = parseFloat(extractMeta('total_amount_usd'));
+               const metaTourValuePaidUSD = parseFloat(extractMeta('tour_value_paid_usd'));
+               // Tour value (fee-free) for the booking amount_paid update
+               const tourValueUSD = !isNaN(metaTourValuePaidUSD) ? metaTourValuePaidUSD : (!isNaN(metaChargedAmountUSD) ? metaChargedAmountUSD : ((transactionData.amount / 100) / USD_TO_GHS_RATE));
+               // Charged amount (fee-inclusive) for the transaction ledger
+               const chargedUSD = !isNaN(metaChargedAmountUSD) ? metaChargedAmountUSD : ((transactionData.amount / 100) / USD_TO_GHS_RATE);
+               
+               // Fetch the existing booking to update it
+               const { data: targetBooking } = await supabaseAdmin.from('bookings')
+                  .select('id, amount_paid, total_price, user_id')
+                  .eq('id', metaBookingId)
+                  .single();
+               
+               if (targetBooking) {
+                  // Add the TOUR VALUE (fee-free) to amount_paid
+                  const newAmountPaid = (Number(targetBooking.amount_paid) || 0) + tourValueUSD;
+                  const newStatus = newAmountPaid >= (Number(targetBooking.total_price) || 0) ? 'FULLY_PAID' : 'DEPOSIT_PAID';
+                  
+                  console.log('Verify: Updating booking balance =>', { 
+                     bookingId: metaBookingId, 
+                     previousPaid: targetBooking.amount_paid, 
+                     tourValueAdded: tourValueUSD,
+                     chargedAmount: chargedUSD,
+                     newAmountPaid, 
+                     newStatus 
+                  });
+                  
+                  await supabaseAdmin.from('bookings').update({
+                     amount_paid: newAmountPaid,
+                     payment_status: newStatus
+                  }).eq('id', metaBookingId);
+                  
+                  // Insert BALANCE transaction linked to the existing booking
+                  // Transaction amount = what was CHARGED (fee-inclusive) 
+                  const resolvedUserId = sessionUserId || (metadataUserId && metadataUserId.trim() !== '' ? metadataUserId : null) || targetBooking.user_id;
+                  const { error: txErr } = await supabaseAdmin.from('payment_transactions').insert({
+                     user_id: resolvedUserId,
+                     booking_id: metaBookingId,
+                     amount: chargedUSD,
+                     currency: 'USD',
+                     payment_reference: reference,
+                     status: transactionData.status === 'success' ? 'success' : 'pending',
+                     payment_type: 'BALANCE',
+                     metadata: { paystack_channel: transactionData.channel, paystack_id: transactionData.id }
+                  });
+                  if (txErr) console.error('Verify: Balance transaction insert error:', txErr);
+               }
+            }
+            
+            if (!existingBooking && (!metaBookingId || metaBookingId.trim() === '') && tourId && tourId !== 'test-1234') {
+                 // USD AMOUNT RESOLUTION: Separate tour value (no fees) from charged amount (with fees)
+                 const USD_TO_GHS_RATE = 13.5;
+                 const metaChargedAmountUSD = parseFloat(extractMeta('total_amount_usd'));
+                 const metaFullPriceUSD = parseFloat(extractMeta('total_full_price_usd'));
+                 const metaTourValuePaidUSD = parseFloat(extractMeta('tour_value_paid_usd'));
+                 
+                 // Charged amount (fee-inclusive) — for transaction ledger
+                 const chargedAmountUSD = !isNaN(metaChargedAmountUSD) ? metaChargedAmountUSD : ((transactionData.amount / 100) / USD_TO_GHS_RATE);
+                 // Tour value paid (fee-free) — for booking amount_paid
+                 const tourValuePaidUSD = !isNaN(metaTourValuePaidUSD) ? metaTourValuePaidUSD : chargedAmountUSD;
+                 // Full trip price (fee-free) — for booking total_price
+                 const totalFullPriceUSD = !isNaN(metaFullPriceUSD) ? metaFullPriceUSD : tourValuePaidUSD;
+                 
+                 console.log('Verify: Amount Resolution =>', { chargedAmountUSD, tourValuePaidUSD, totalFullPriceUSD });
+                 
+                 const resolvedPaymentStatus = paymentOption === 'pay_deposit' ? 'DEPOSIT_PAID' : 'FULLY_PAID';
+                 const resolvedPaymentType = paymentOption === 'pay_deposit' ? 'DEPOSIT' : 'FULL';
+                 
+                 // DUAL IDENTITY RESOLUTION: Session > Metadata > Guest
+                 // Priority 1: Live authenticated session (cannot be lost in transit)
+                 // Priority 2: Paystack metadata userId (roundtrip from checkout)
+                 // Priority 3: null (true guest checkout)
+                 let finalUserId = sessionUserId || (metadataUserId && metadataUserId.trim() !== '' ? metadataUserId : null);
+                 console.log('Verify: Identity Resolution =>', { sessionUserId, metadataUserId, finalUserId });
+
+                // Execute Insertion with graceful fallback for identity parsing
+                const { data: newBooking, error: insertErr } = await supabaseAdmin.from('bookings').insert({
+                   user_id: finalUserId,
+                   guest_name: guestName,
+                   guest_email: customerEmail,
+                   guest_phone: guestPhone,
+                   tour_id: tourId,
+                   travel_dates: travelDate,
+                   travelers_count: passengers,
+                   total_price: totalFullPriceUSD, 
+                   amount_paid: tourValuePaidUSD,
+                   payment_status: resolvedPaymentStatus,
+                   paystack_reference: reference
+                }).select('id').single();
+                
+                if (insertErr) {
+                    console.error("Booking Table Insert Error:", insertErr);
+                    
+                    // FK violation on user_id — the userId from Paystack metadata may not exist in profiles.
+                    // Try session-based user as fallback before resorting to guest mode.
+                    if (insertErr.code === '23503' && finalUserId) {
+                        console.warn("Foreign Key Violation on user_id:", finalUserId);
+                        
+                        // If metadata userId caused the FK fail, try sessionUserId instead
+                        let retryUserId: string | null = null;
+                        if (finalUserId === metadataUserId && sessionUserId && sessionUserId !== metadataUserId) {
+                           retryUserId = sessionUserId;
+                           console.log("Retrying with session userId:", retryUserId);
+                        }
+                        
+                        finalUserId = retryUserId;
+                        const { data: fallbackBooking } = await supabaseAdmin.from('bookings').insert({
+                           user_id: retryUserId,
+                           guest_name: guestName,
+                           guest_email: customerEmail,
+                           guest_phone: guestPhone,
+                           tour_id: tourId,
+                           travel_dates: travelDate,
+                           travelers_count: passengers,
+                           total_price: totalFullPriceUSD, 
+                           amount_paid: tourValuePaidUSD,
+                           payment_status: resolvedPaymentStatus,
+                           paystack_reference: reference
+                        }).select('id').single();
+
+                        // Insert Payment Transaction for fallback booking
+                        if (fallbackBooking) {
+                           await supabaseAdmin.from('payment_transactions').insert({
+                              user_id: retryUserId,
+                              booking_id: fallbackBooking.id,
+                              amount: chargedAmountUSD,
+                              currency: 'USD',
+                              payment_reference: reference,
+                              status: transactionData.status === 'success' ? 'success' : 'pending',
+                              payment_type: resolvedPaymentType,
+                              metadata: { paystack_channel: transactionData.channel, paystack_id: transactionData.id }
+                           });
+                        }
+                    }
+                }
+
+                // Insert Payment Transaction for primary booking
+                if (!insertErr && newBooking) {
+                   const { error: txErr } = await supabaseAdmin.from('payment_transactions').insert({
+                      user_id: finalUserId,
+                      booking_id: newBooking.id,
+                      amount: chargedAmountUSD,
+                      currency: 'USD',
+                      payment_reference: reference,
+                      status: transactionData.status === 'success' ? 'success' : 'pending',
+                      payment_type: resolvedPaymentType,
+                      metadata: { paystack_channel: transactionData.channel, paystack_id: transactionData.id }
+                   });
+                   if (txErr) console.error("Payment Transaction Insert Error:", txErr);
+                }
            }
         }
      } catch (err) {

@@ -49,6 +49,8 @@ export default function CheckoutEngine({ tour, currentUser }: { tour: any, curre
            travelDate,
            passengers,
            totalAmount: grandTotal,
+           totalFullPrice,
+           tourValuePaid: baseTotal,
            guestEmail,
            guestName: guestName || resolveFullName() || 'Valued Traveler',
            guestPhone,
