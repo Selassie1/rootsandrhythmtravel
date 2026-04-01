@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { Resend } from 'resend';
+import { getSiteURL } from "@/utils/url-helper";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -349,7 +350,7 @@ export async function updatePaymentStatus(id: string, newStatus: string) {
                     ${newStatus.replace('_', ' ')}
                  </div>
                  <p style="color: #A0A0A0; line-height: 1.6; font-size: 14px;">If this status is unexpected, please contact your concierge team immediately.</p>
-                 <a href="${process.env.NEXT_PUBLIC_SITE_URL}/dashboard" style="display: inline-block; margin-top: 20px; text-decoration: none; background-color: #B8860B; color: #000; padding: 12px 24px; border-radius: 50px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">View Dashboard</a>
+                  <a href="${await getSiteURL()}/dashboard" style="display: inline-block; margin-top: 20px; text-decoration: none; background-color: #B8860B; color: #000; padding: 12px 24px; border-radius: 50px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">View Dashboard</a>
                </div>
              </div>
            `

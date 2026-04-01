@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { getSiteURL } from '@/utils/url-helper'
 
 export async function loginAction(prevState: any, formData: FormData) {
   const email = formData.get('email') as string

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSiteURL } from '@/utils/url-helper';
 
 export async function POST(req: NextRequest) {
   try {
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
         amount: paystackAmount,
         currency: 'GHS', // Temporary GHS initialization until USD integration is reviewed
         reference: referenceId,
-        callback_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/checkout/verify?reference=${referenceId}`,
+        callback_url: `${await getSiteURL()}/checkout/verify?reference=${referenceId}`,
         metadata: metadataPayload
       }),
     });
