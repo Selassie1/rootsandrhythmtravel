@@ -43,7 +43,7 @@ export default function VerticalGreetings() {
   const word = greetings[index];
 
   return (
-    <div className="absolute top-1/4 -translate-y-1/2 left-18 z-30 flex items-center pointer-events-none overflow-hidden">
+    <div className="absolute top-[20%] -translate-y-1/2 left-6 md:left-18 z-30 flex items-center pointer-events-none overflow-hidden">
       <AnimatePresence mode="wait">
         {active && (
           <motion.span
@@ -52,7 +52,7 @@ export default function VerticalGreetings() {
             initial="initial"
             animate="animate"
             exit="exit"
-            className="flex font-serif tracking-[0.25em] text-white uppercase text-6xl drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]"
+            className="flex font-serif tracking-[0.25em] text-white uppercase text-3xl sm:text-5xl lg:text-7xl drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]"
           >
             {word.split("").map((char, i) => (
               <motion.span key={i} variants={letterVariants}>
