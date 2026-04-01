@@ -55,6 +55,7 @@ export default async function TourSetupPage({ params }: { params: Promise<{ slug
           src={tour.hero_image_url || '/images/Square.jpeg'}
           alt={tour.title}
           fill
+          unoptimized={true}
           className="object-cover object-center scale-105"
           priority
         />

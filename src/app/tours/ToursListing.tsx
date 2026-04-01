@@ -79,6 +79,7 @@ export default function ToursListing({ initialTours }: { initialTours: Tour[] })
                       src={tour.hero_image_url || '/images/Square.jpeg'}
                       alt={tour.title}
                       fill
+                      unoptimized={true}
                       className="object-cover w-full h-full transform transition-transform duration-1000 group-hover:scale-105"
                     />
                     <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#131A14] via-[#131A14]/70 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100" />

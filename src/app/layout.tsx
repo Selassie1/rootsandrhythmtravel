@@ -17,6 +17,9 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "Roots & Rhythm Travels | Explore Ghana",
   description: "Authentic Ghanaian cultural immersions, celebration journeys, and diaspora connections.",
+  icons: {
+     icon: '/icon.png',
+  }
 };
 
 export default function RootLayout({
