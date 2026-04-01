@@ -201,7 +201,7 @@ export default function CheckoutEngine({ tour, currentUser }: { tour: any, curre
                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentOption === 'pay_deposit' ? 'border-[#B8860B]' : 'border-white/20'}`}>
                             {paymentOption === 'pay_deposit' && <div className="w-2 h-2 bg-[#E8D3A2] rounded-full" />}
                          </div>
-                         Secure Core Deposit
+                         Secure Deposit
                        </span>
                        <span className="text-2xl font-serif text-[#E8D3A2]">${totalDeposit.toLocaleString()}</span>
                     </div>

@@ -331,7 +331,7 @@ export default async function CheckoutVerifyPage({
 
          <div className="flex flex-col md:flex-row gap-4 w-full mt-4 px-2 max-w-2xl">
             <Link href="/dashboard" className="flex-1 bg-transparent border border-white/10 text-white hover:border-[#B8860B] py-4 rounded-full font-bold uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 group hover:shadow-[0_0_20px_rgba(184,134,11,0.2)]">
-              Enter Traveler Portal <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              Go to Dashboard <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </Link>
          </div>
       </div>
