@@ -45,10 +45,10 @@ const Footer = () => {
           <div className="flex flex-col lg:col-span-2 lg:col-start-6">
             <h4 className="text-white text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase mb-8 opacity-40">Journeys</h4>
             <ul className="flex flex-col gap-5">
-              <li><a href="#" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Heritage Return</a></li>
-              <li><a href="#" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Cultural Immersions</a></li>
-              <li><a href="#" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Accra Nightlife</a></li>
-              <li><a href="#" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Custom Group Tours</a></li>
+              <li><a href="/tours" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Heritage Return</a></li>
+              <li><a href="/tours" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Cultural Immersions</a></li>
+              <li><a href="/tours" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Accra Nightlife</a></li>
+              <li><a href="/tours" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Custom Group Tours</a></li>
             </ul>
           </div>
 
@@ -56,10 +56,10 @@ const Footer = () => {
           <div className="flex flex-col lg:col-span-2">
             <h4 className="text-white text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase mb-8 opacity-40">Company</h4>
             <ul className="flex flex-col gap-5">
-              <li><a href="#" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Our Philosophy</a></li>
-              <li><a href="#" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">The Team</a></li>
-              <li><a href="#" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Stories & Reviews</a></li>
-              <li><a href="#" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Contact Us</a></li>
+              <li><a href="/about" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Our Philosophy</a></li>
+              <li><a href="/about" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">The Team</a></li>
+              <li><a href="/about" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Stories & Reviews</a></li>
+              <li><a href="/contact" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Contact Us</a></li>
             </ul>
           </div>
 
@@ -67,9 +67,9 @@ const Footer = () => {
           <div className="flex flex-col lg:col-span-3">
             <h4 className="text-white text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase mb-8 opacity-40">Connect</h4>
             <ul className="flex flex-col gap-5">
-              <li className="text-white/70 text-sm md:text-base hover:text-[#E8D3A2] transition-colors cursor-pointer">hello@rootsandrhythm.com</li>
-              <li className="text-white/70 text-sm md:text-base hover:text-[#E8D3A2] transition-colors cursor-pointer">+233 (0) 55 123 4567</li>
-              <li className="text-white/50 text-sm mt-4 tracking-wide leading-relaxed">East Legon, <br/>Accra, Ghana<br/>West Africa</li>
+              <li className="text-white/70 text-sm md:text-base hover:text-[#E8D3A2] transition-colors cursor-pointer"><a href="mailto:support@rootsandrhythmtravel.com">support@rootsandrhythmtravel.com</a></li>
+              <li className="text-white/70 text-sm md:text-base hover:text-[#E8D3A2] transition-colors cursor-pointer"><a href="tel:+233202713806">+233 (0) 20 271 3806</a></li>
+              <li className="text-white/50 text-sm mt-4 tracking-wide leading-relaxed">Tse Addo, <br/>Accra, Ghana<br/>West Africa</li>
             </ul>
           </div>
 
@@ -93,8 +93,8 @@ const Footer = () => {
            <div className="w-full flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase text-white/40 relative z-10 pt-6">
              <span>&copy; {new Date().getFullYear()} Roots & Rhythm</span>
              <div className="flex gap-6">
-                <a href="#" className="hover:text-[#E8D3A2] transition-colors">Privacy Policy</a>
-                <a href="#" className="hover:text-[#E8D3A2] transition-colors">Terms of Service</a>
+                <a href="/privacy" className="hover:text-[#E8D3A2] transition-colors">Privacy Policy</a>
+                <a href="/terms" className="hover:text-[#E8D3A2] transition-colors">Terms of Service</a>
              </div>
              <span className="text-[#E8D3A2]/60">Curated in Ghana</span>
            </div>

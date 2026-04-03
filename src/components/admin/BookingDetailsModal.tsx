@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { X, Mail, Phone, Calendar, User, CreditCard, Send, Loader2, CheckCircle } from 'lucide-react';
 import { resendReceipt } from '@/actions/admin';
+import Price from '@/components/Price';
 
 interface BookingDetailsModalProps {
   booking: any;
@@ -46,8 +47,8 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
       
       <div className="bg-[#1A241B] w-full max-w-xl rounded-[2rem] border border-white/10 shadow-3xl overflow-hidden relative z-10 animate-in fade-in zoom-in duration-300 flex flex-col max-h-[90vh]">
         {/* Header - Reduced padding */}
-        <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/40">
-          <div>
+        <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/40 text-left">
+          <div className="text-left">
             <h2 className="text-xl font-serif text-white tracking-tight">Booking Resolution</h2>
             <p className="text-[#B8860B] text-[10px] uppercase font-bold tracking-widest mt-1">REF: {booking.paystack_reference}</p>
           </div>
@@ -57,28 +58,28 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
         </div>
 
         {/* Content - Reduced padding and gaps | Removed scrollbar */}
-        <div className="p-6 overflow-y-auto flex flex-col gap-6 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className="p-6 overflow-y-auto flex flex-col gap-6 scrollbar-hide text-left" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           
           <div className="flex flex-col gap-3">
              <h3 className="text-white/30 text-[10px] uppercase font-black tracking-[0.2em] flex items-center gap-2">
                 <User size={12} /> Traveler Identity
              </h3>
               <div className="grid grid-cols-2 gap-4">
-                 <div className="bg-white/5 p-4 rounded-xl border border-white/5 shadow-sm">
+                 <div className="bg-white/5 p-4 rounded-xl border border-white/5 shadow-sm text-left">
                     <span className="text-white/40 text-[11px] uppercase tracking-widest font-bold block mb-1.5">Legal Name</span>
                     <span className="text-white text-sm font-serif tracking-wide">{travelerName}</span>
                  </div>
-                 <div className="bg-white/5 p-4 rounded-xl border border-white/5 shadow-sm">
+                 <div className="bg-white/5 p-4 rounded-xl border border-white/5 shadow-sm text-left">
                     <span className="text-white/40 text-[11px] uppercase tracking-widest font-bold block mb-1.5">Database ID</span>
                     <span className="text-white/50 text-[11px] font-mono truncate block">{booking.id.split('-')[0]}</span>
                  </div>
-                 <div className="bg-white/5 p-4 rounded-xl border border-white/5 flex flex-col justify-center shadow-sm">
+                 <div className="bg-white/5 p-4 rounded-xl border border-white/5 flex flex-col justify-center shadow-sm text-left">
                     <div className="flex items-center gap-3">
                        <Mail size={14} className="text-[#B8860B]" />
                        <span className="text-white/70 text-sm font-medium truncate">{travelerEmail}</span>
                     </div>
                  </div>
-                 <div className="bg-white/5 p-4 rounded-xl border border-white/5 flex flex-col justify-center shadow-sm">
+                 <div className="bg-white/5 p-4 rounded-xl border border-white/5 flex flex-col justify-center shadow-sm text-left">
                     <div className="flex items-center gap-3">
                        <Phone size={14} className="text-[#B8860B]" />
                        <span className="text-white/70 text-sm font-medium truncate">{travelerPhone}</span>
@@ -87,16 +88,16 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
               </div>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 text-left">
              <h3 className="text-white/30 text-[10px] uppercase font-black tracking-[0.2em] flex items-center gap-2">
                 <Calendar size={12} /> Experience Parameters
              </h3>
-             <div className="bg-white/5 p-4 rounded-xl border border-white/5 flex flex-col gap-3">
-                <div>
+             <div className="bg-white/5 p-4 rounded-xl border border-white/5 flex flex-col gap-3 text-left">
+                <div className="text-left">
                    <p className="text-white font-serif text-lg leading-tight">{booking.tours?.title || 'Tour Package'}</p>
                 </div>
                 <div className="flex justify-between border-t border-white/10 pt-4 mt-1">
-                   <div>
+                   <div className="text-left">
                       <span className="text-white/40 text-[11px] uppercase tracking-widest font-bold">Manifest Date</span>
                       <p className="text-white/80 text-sm mt-1">{booking.travel_dates || 'To Be Confirmed'}</p>
                    </div>
@@ -108,23 +109,23 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
              </div>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 text-left">
              <h3 className="text-white/30 text-[10px] uppercase font-black tracking-[0.2em] flex items-center gap-2">
                 <CreditCard size={12} /> Financial Ledger
              </h3>
-             <div className="bg-white/5 rounded-xl border border-white/5 overflow-hidden">
+             <div className="bg-white/5 rounded-xl border border-white/5 overflow-hidden text-left">
                 <div className="p-4 grid grid-cols-2 gap-4 border-b border-white/10 bg-white/[0.03]">
-                   <div>
+                   <div className="text-left">
                       <span className="text-white/40 text-[11px] uppercase tracking-widest font-bold">Transaction</span>
-                      <p className="text-[#B8860B] font-mono font-bold text-lg mt-1">${booking.total_price?.toLocaleString()}</p>
+                      <Price amount={booking.total_price} className="text-[#B8860B] font-mono font-bold text-lg mt-1 block" />
                    </div>
-                   <div>
+                   <div className="text-left">
                       <span className="text-white/40 text-[11px] uppercase tracking-widest font-bold">Captured</span>
-                      <p className="text-white font-mono font-bold text-lg mt-1">${booking.amount_paid?.toLocaleString()}</p>
+                      <Price amount={booking.amount_paid} className="text-white font-mono font-bold text-lg mt-1 block" />
                    </div>
                 </div>
                 <div className="p-4 grid grid-cols-2 gap-4">
-                   <div>
+                   <div className="text-left">
                       <span className="text-white/40 text-[11px] uppercase tracking-widest font-bold">Logic: {booking.booking_status}</span>
                    </div>
                    <div className="text-right">
@@ -137,7 +138,7 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
         </div>
 
         {/* Footer - Reduced padding */}
-        <div className="p-6 border-t border-white/5 bg-black/40 flex flex-col gap-3">
+        <div className="p-6 border-t border-white/5 bg-black/40 flex flex-col gap-3 text-left">
           {sentStatus === 'error' && (
              <p className="text-red-400 text-[11px] text-center font-mono uppercase tracking-widest animate-pulse">Email Pipeline Rejection: Check Resend Domain Policy</p>
           )}
@@ -147,7 +148,7 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
              className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-bold uppercase tracking-[0.2em] text-[11px] transition-all ${
                sentStatus === 'success' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 
                sentStatus === 'error' ? 'bg-red-500/10 text-red-400 border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.1)]' :
-               'bg-[#B8860B] hover:bg-[#D4AF37] text-black shadow-[0_10px_30px_rgba(184,134,11,0.2)]'
+               'bg-[#B88600] hover:bg-[#D4AF37] text-black shadow-[0_10px_30px_rgba(184,134,11,0.2)] cursor-pointer'
              }`}
           >
             {resending ? (

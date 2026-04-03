@@ -24,7 +24,7 @@ export default async function TourSetupPage({ params }: { params: Promise<{ slug
        tour = {
           id: 'test-1234',
           title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-          description: isCustom ? 'Work intimately with our concierge team to design a bespoke motherland experience exactly tailored to your wishes.' : 'A deeply immersive cultural journey into the heart of West Africa tailored by Roots & Rhythm Travels.',
+          description: isCustom ? 'Work closely with our travel concierge team to design a highly personalized motherland experience tailored precisely to your schedule, budget, and cultural interests.' : 'A deeply immersive cultural journey into the heart of West Africa tailored by Roots & Rhythm Travels.',
           location: slug.includes('accra') ? 'Accra' : 'Ghana',
           duration_days: slug === 'build-your-own-expedition' ? 'Flexible' : 7,
           price: isCustom ? 0 : 35000,

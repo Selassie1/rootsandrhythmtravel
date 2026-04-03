@@ -7,13 +7,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
+import CurrencySwitcher from '@/components/CurrencySwitcher';
 
 const navLinks = [
   { name: 'Home', href: '/' },
   { name: 'Tours', href: '/tours' },
   { name: 'About', href: '/about' },
-  { name: 'Contact', href: '/contact' },
-  { name: 'Currency', href: '/currency', mobileOnly: true }
+  { name: 'Contact', href: '/contact' }
 ];
 
 export default function GlobalNav() {
@@ -37,7 +37,6 @@ export default function GlobalNav() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Actively track Supabase authentication state
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
@@ -55,7 +54,6 @@ export default function GlobalNav() {
     setIsMenuOpen(false);
   }, [pathname]);
 
-  // Aggressively restrict navigation overlays from completely overriding distraction-free isolated flow portals
   if (pathname === '/login' || pathname.startsWith('/checkout/verify') || pathname.startsWith('/admin')) return null;
 
   return (
@@ -99,12 +97,7 @@ export default function GlobalNav() {
                 >
                   <Link href="/" className="flex items-center gap-3 outline-none group cursor-pointer">
                     <div className="relative w-8 h-8 sm:w-10 sm:h-10 transition-transform duration-500 group-hover:scale-105">
-                      <Image src="/logo.png" alt="Logo" fill className="object-contain" priority />
-                    </div>
-                    <div className="hidden lg:flex flex-col leading-none">
-                      <span className="text-[#F9B729] text-[10px] uppercase font-black tracking-widest">Roots &</span>
-                      <span className="text-[#E63931] text-[10px] uppercase font-black tracking-[0.2em]">Rhythm</span>
-                      <span className="text-[#178548] text-[10px] uppercase font-black tracking-[0.2em]">Travel</span>
+                      <Image src="/logo.png" alt="Logo" fill className="object-contain" priority unoptimized />
                     </div>
                   </Link>
                 </motion.div>
@@ -124,7 +117,7 @@ export default function GlobalNav() {
                   className="absolute top-0 left-1/2 -translate-x-1/2 w-30 h-[64px] md:w-32 md:h-[90px] bg-white/20 backdrop-blur-md rounded-b-[100px] flex items-center justify-center shadow-2xl"
                 >
                   <Link href="/" className="relative w-9 h-9 md:w-14 md:h-14 mt-[-6px] md:mt-[-10px] group transition-transform duration-500 hover:scale-110 cursor-pointer">
-                    <Image src="/logo.png" alt="Roots & Rhythm Travels" fill className="object-contain" priority />
+                    <Image src="/logo.png" alt="Roots & Rhythm Travels" fill className="object-contain" priority unoptimized />
                   </Link>
                 </motion.div>
               ) : (
@@ -135,7 +128,7 @@ export default function GlobalNav() {
                   exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
                   className="hidden md:flex items-center h-full gap-8 lg:gap-12"
                 >
-                  {navLinks.filter(l => !l.mobileOnly).map((link) => (
+                  {navLinks.map((link) => (
                     <Link 
                       key={link.name} 
                       href={link.href}
@@ -150,10 +143,10 @@ export default function GlobalNav() {
           </div>
 
           {/* --- RIGHT SECTION --- */}
-          <div className="flex justify-end gap-2 md:gap-4 w-[120px] md:w-[150px]">
-            <Link href="/currency" className={`hidden md:flex w-10 h-10 md:w-12 md:h-12 rounded-2xl items-center justify-center text-white transition-all cursor-pointer ${isScrolled ? 'bg-white/5 hover:bg-white/10' : 'bg-white/10 hover:bg-white backdrop-blur-md hover:text-black'}`}>
-              <Globe size={18} strokeWidth={2.5} />
-            </Link>
+          <div className="flex justify-end items-center gap-2 md:gap-4 w-[160px] md:w-[200px]">
+            <div className="hidden md:block">
+              <CurrencySwitcher isScrolled={isScrolled} />
+            </div>
             
             {user ? (
               <div className="relative group flex items-center justify-center">
@@ -164,10 +157,10 @@ export default function GlobalNav() {
                   {(user.user_metadata?.first_name?.charAt(0) || user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U').toUpperCase()}
                 </button>
                 
-                {/* Embedded Native Dropdown Menu */}
                 <AnimatePresence>
                   {isProfileOpen && (
                     <motion.div 
+                      key="profile-dropdown"
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -190,14 +183,6 @@ export default function GlobalNav() {
                         <div className="flex items-center gap-3">
                           <Ticket size={14} className="text-[#B8860B]" />
                           <span>Journey History</span>
-                        </div>
-                        <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
-                      </Link>
-
-                      <Link href="/dashboard?tab=resources" onClick={() => setIsProfileOpen(false)} className="flex items-center justify-between px-4 py-3 hover:bg-white/5 rounded-xl text-white font-bold text-[10px] uppercase tracking-widest transition-colors mb-1 group">
-                        <div className="flex items-center gap-3">
-                          <BookOpen size={14} className="text-[#B8860B]" />
-                          <span>Resource Vault</span>
                         </div>
                         <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                       </Link>
@@ -249,10 +234,10 @@ export default function GlobalNav() {
         </div>
       </motion.nav>
 
-      {/* --- OVERLAY MENU --- */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
+            key="mobile-menu"
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
@@ -269,7 +254,7 @@ export default function GlobalNav() {
             <div className="flex flex-col items-center gap-10 text-center w-full max-w-xl px-6 relative z-10">
               <div className="mb-4">
                 <Link href="/" onClick={() => setIsMenuOpen(false)} className="relative w-16 h-16 block group transition-transform duration-500 hover:scale-110 cursor-pointer">
-                  <Image src="/logo.png" alt="Roots & Rhythm Travels" fill className="object-contain" priority />
+                  <Image src="/logo.png" alt="Roots & Rhythm Travels" fill className="object-contain" priority unoptimized />
                 </Link>
               </div>
               
@@ -291,6 +276,11 @@ export default function GlobalNav() {
                     </Link>
                   </motion.div>
                 ))}
+                
+                {/* Mobile Currency Selection */}
+                <div className="mt-8">
+                  <CurrencySwitcher isScrolled={true} />
+                </div>
               </div>
 
               <motion.div
@@ -300,16 +290,9 @@ export default function GlobalNav() {
                 className="mt-12 flex flex-col gap-4 items-center"
               >
                 {user ? (
-                   <div className="flex flex-col gap-4 w-full">
-                     <Link href="/dashboard?tab=upcoming" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center gap-3 px-8 py-4 bg-[#B8860B] active:scale-95 text-black rounded-full font-bold text-xs tracking-[0.2em] transition-all uppercase shadow-xl">
-                        <Map size={18} /> My Dashboard
-                     </Link>
-                     <form action="/auth/signout" method="post" className="w-full m-0">
-                        <button type="submit" className="w-full flex items-center justify-center gap-3 px-8 py-4 border border-red-500/30 text-red-400 hover:bg-red-500/10 active:scale-95 rounded-full font-bold text-xs tracking-[0.2em] transition-all uppercase">
-                           <LogOut size={18} /> Sign Out
-                        </button>
-                     </form>
-                   </div>
+                   <Link href="/dashboard?tab=upcoming" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center gap-3 px-8 py-4 bg-[#B8860B] active:scale-95 text-black rounded-full font-bold text-xs tracking-[0.2em] transition-all uppercase shadow-xl">
+                      <Map size={18} /> My Dashboard
+                   </Link>
                 ) : (
                   <Link href="/login" onClick={() => setIsMenuOpen(false)} className="px-8 py-4 border border-white/20 text-white hover:bg-white hover:text-black rounded-full font-bold text-[10px] md:text-xs tracking-[0.2em] transition-all uppercase inline-flex items-center gap-3 cursor-pointer">
                     <User size={16} /> Sign In to Portal

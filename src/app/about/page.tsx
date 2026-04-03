@@ -111,6 +111,67 @@ export default function AboutPage() {
           </div>
         </motion.div>
       </section>
+      {/* 2b. THE VISIONARY / OWNER SECTION */}
+      <section className="bg-[#1A241B]/30 py-24 sm:py-32 mt-20 sm:mt-28 md:mt-40 border-y border-white/5 relative overflow-hidden">
+        {/* Subtle Decorative Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#B8860B]/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#B8860B]/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
+        
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="order-2 lg:order-1"
+          >
+            <span className="text-[#B8860B] tracking-[0.3em] text-[10px] font-bold uppercase mb-6 block">Meet the Visionary</span>
+            <h2 className="text-4xl sm:text-5xl font-serif text-[#FAFAF8] leading-tight mb-8">
+              "Roots & Rhythm is a dialogue between the soul and the soil."
+            </h2>
+            
+            <div className="space-y-6 text-white/70 text-base sm:text-lg leading-relaxed font-light">
+              <p>
+                From a young age, I was captivated by the deep resonance of Ghanaian drumming and the stories etched into our ancient landscapes. Roots & Rhythm Travels was founded on the belief that travel should be more than a checklist; it should be a transformation.
+              </p>
+              <p>
+                As a curator of cultural experiences, my mission is to bridge the gap between global travelers and the authentic pulse of West Africa. We don't just show you Ghana; we help you find your personal rhythm within its timeless traditions.
+              </p>
+            </div>
+
+            <div className="mt-12 flex flex-col items-start gap-1">
+              <span className="text-xl font-serif text-[#FAFAF8]">Elikem</span>
+              <span className="text-[#B8860B] text-[10px] uppercase tracking-widest font-bold">Founder & Cultural Steward</span>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1 }}
+            className="order-1 lg:order-2 relative aspect-[4/5] rounded-[24px] sm:rounded-[32px] overflow-hidden group shadow-[0_32px_64px_rgba(0,0,0,0.6)]"
+          >
+            <Image 
+              src="/images/elikem.png" 
+              alt="Elikem — Founder of Roots & Rhythm"
+              fill
+              className="object-cover transition-transform duration-1000 group-hover:scale-105"
+              unoptimized
+            />
+            {/* Elite Image Gradient Overlay */}
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent" />
+            
+            <div className="absolute bottom-8 left-8 right-8">
+              <div className="w-12 h-[1px] bg-[#B8860B] mb-4" />
+              <p className="text-white/40 text-xs italic leading-relaxed">
+                Dedicated to preserving and promoting the profound cultural heritage of West Africa through high-end, immersive stewardship.
+              </p>
+            </div>
+          </motion.div>
+
+        </div>
+      </section>
 
       {/* 3. MISSION & VALUES GRID */}
       <section className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-20 sm:mt-28 md:mt-40">

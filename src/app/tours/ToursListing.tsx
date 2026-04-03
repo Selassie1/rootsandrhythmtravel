@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import Price from '@/components/Price';
 
 interface Tour {
   id: string;
@@ -94,9 +95,7 @@ export default function ToursListing({ initialTours }: { initialTours: Tour[] })
                         {tour.description_heading || tour.description_body || tour.description}
                       </p>
                       <div className="flex items-center justify-between w-full mt-3 border-t border-white/10 pt-3 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-200">
-                        <span className="text-[#FAFAF8] opacity-60 text-[8px] uppercase font-bold tracking-widest hidden sm:block">
-                          {tour.category}
-                        </span>
+                        <Price amount={tour.price} className="text-[#FAFAF8] text-sm font-serif group-hover:text-[#E8D3A2] transition-colors" />
                         <span className="text-[#E8D3A2] text-[9px] uppercase font-bold tracking-[0.2em] flex items-center gap-1 group/link">
                           Explore <motion.span className="inline-block transition-transform duration-300 group-hover/link:translate-x-1">→</motion.span>
                         </span>

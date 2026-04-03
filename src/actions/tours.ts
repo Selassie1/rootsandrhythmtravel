@@ -54,11 +54,11 @@ export async function searchTours(params: {
   }
   
   if (params.experience && params.experience !== 'ALL') {
-    query = query.eq('experience_type', params.experience);
+    query = query.eq('experience', params.experience);
   }
 
   if (params.travelers && params.travelers !== 'ALL') {
-    query = query.eq('traveler_category', params.travelers);
+    query = query.eq('ideal_for', params.travelers);
   }
 
   if (params.when && params.when !== 'ALL') {

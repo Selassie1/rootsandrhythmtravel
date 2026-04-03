@@ -22,7 +22,6 @@ export const regionMapping: Record<string, string> = {
 
 export const experienceMapping: Record<string, string> = {
   'ADVENTURE': 'Adventure & Nature',
-  'CULTURAL': 'Cultural Heritage',
   'SPIRITUAL': 'Spiritual Tourism',
   'EDUCATIONAL': 'Educational Groups',
   'CELEBRATION': 'Celebration Journeys',

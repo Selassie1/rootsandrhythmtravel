@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Calendar, CreditCard, ArrowRight, ShieldCheck, UserCheck } from 'lucide-react';
+import Price from '@/components/Price';
+
+declare const PaystackPop: any;
 
 export default function CheckoutEngine({ tour, currentUser }: { tour: any, currentUser: any }) {
   const [step, setStep] = useState(1);
@@ -58,18 +61,33 @@ export default function CheckoutEngine({ tour, currentUser }: { tour: any, curre
         })
       });
 
-      const { authorization_url } = await resp.json();
+      if (!resp.ok) {
+        const errorData = await resp.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server returned ${resp.status}`);
+      }
+
+      const data = await resp.json();
       
-      if (authorization_url) {
-        // Redirect directly to Paystack Secure Portal
-        window.location.href = authorization_url;
+      if (data.access_code) {
+        try {
+          const paystack = new PaystackPop();
+          paystack.resumeTransaction(data.access_code);
+          setIsProcessing(false);
+        } catch (scriptErr) {
+          console.error("Paystack Inline Script Error:", scriptErr);
+          // Fallback if script not loaded yet
+          if (data.authorization_url) window.location.href = data.authorization_url;
+          else throw new Error("Payment script not ready. Please refresh.");
+        }
+      } else if (data.authorization_url) {
+        window.location.href = data.authorization_url;
       } else {
         alert("Failed to initialize payment gateway.");
         setIsProcessing(false);
       }
-    } catch (err) {
-      console.error(err);
-      alert("System error communicating with Paystack.");
+    } catch (err: any) {
+      console.error("Checkout Error:", err);
+      alert(err.message || "System error communicating with Paystack.");
       setIsProcessing(false);
     }
   };
@@ -203,9 +221,9 @@ export default function CheckoutEngine({ tour, currentUser }: { tour: any, curre
                          </div>
                          Secure Deposit
                        </span>
-                       <span className="text-2xl font-serif text-[#E8D3A2]">${totalDeposit.toLocaleString()}</span>
+                       <span className="text-2xl font-serif text-[#E8D3A2]"><Price amount={totalDeposit} /></span>
                     </div>
-                    <p className="text-white/50 text-xs leading-relaxed ml-7">Lock in your dates immediately. The remaining balance of ${(totalFullPrice - totalDeposit).toLocaleString()} will be automatically processed 30 days prior to your arrival.</p>
+                    <p className="text-white/50 text-xs leading-relaxed ml-7">Lock in your dates immediately. The remaining balance of <Price amount={totalFullPrice - totalDeposit} /> will be automatically processed 30 days prior to your arrival.</p>
                  </div>
 
                  {/* Full Payment Tier */}
@@ -220,7 +238,7 @@ export default function CheckoutEngine({ tour, currentUser }: { tour: any, curre
                          </div>
                          Pay In Full
                        </span>
-                       <span className="text-2xl font-serif text-white">${totalFullPrice.toLocaleString()}</span>
+                       <span className="text-2xl font-serif text-white"><Price amount={totalFullPrice} /></span>
                     </div>
                     <p className="text-white/50 text-xs leading-relaxed ml-7">Settle the complete balance upfront. Recommended for streamlined visa applications and fixed budgeting.</p>
                  </div>
@@ -246,7 +264,7 @@ export default function CheckoutEngine({ tour, currentUser }: { tour: any, curre
             <div className="flex flex-col gap-4 border-b border-white/5 pb-6 mb-6">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-white/60">Base Journey ({tour.duration_days})</span>
-                <span className="text-white">${tour.price.toLocaleString()}</span>
+                <span className="text-white"><Price amount={tour.price} /></span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-white/60">Total Travelers</span>
@@ -254,7 +272,7 @@ export default function CheckoutEngine({ tour, currentUser }: { tour: any, curre
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-white/60">Int. Processing Fee (3.9%)</span>
-                <span className="text-[#B8860B] font-mono">+${(grandTotal - baseTotal).toFixed(2)}</span>
+                <span className="text-[#B8860B] font-mono">+<Price amount={grandTotal - baseTotal} /></span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-white/60">Taxes & Logistics</span>
@@ -265,7 +283,7 @@ export default function CheckoutEngine({ tour, currentUser }: { tour: any, curre
             <div className="flex justify-between items-end mb-10">
                <div className="flex flex-col">
                  <span className="text-white/40 text-[9px] uppercase tracking-widest font-bold mb-1">Total Authorized</span>
-                 <span className="text-3xl font-serif text-white">$ {grandTotal.toLocaleString()}</span>
+                 <span className="text-3xl font-serif text-white"><Price amount={grandTotal} /></span>
                </div>
                <span className="bg-[#B8860B]/10 text-[#E8D3A2] px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border border-[#B8860B]/20">
                  {paymentOption === 'pay_full' ? 'Full' : 'Deposit'}

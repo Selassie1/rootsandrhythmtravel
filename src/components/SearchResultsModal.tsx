@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { TourSearchResult } from '@/actions/tours';
 import { regionMapping } from '@/utils/tour-mappings';
+import Price from '@/components/Price';
 
 interface SearchResultsModalProps {
   isOpen: boolean;
@@ -117,7 +118,7 @@ export default function SearchResultsModal({ isOpen, onClose, results, isLoading
                         <div className="flex items-center justify-between pt-4 border-t border-white/5">
                           <div>
                             <span className="block text-[8px] text-white/30 uppercase tracking-widest mb-0.5">From</span>
-                            <span className="text-[#E8D3A2] font-black tracking-tight text-lg">${tour.price}</span>
+                            <Price amount={tour.price} className="text-[#E8D3A2] font-black tracking-tight text-lg" />
                           </div>
                           <Link 
                             href={`/tours/${tour.slug}`}

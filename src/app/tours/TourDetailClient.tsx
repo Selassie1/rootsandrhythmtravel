@@ -5,13 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, Check, ChevronDown, CheckCircle2, Shield, ArrowRight, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Price from '@/components/Price';
 
 export default function TourDetailClient({ tour }: { tour: any }) {
   const router = useRouter();
   const [activeDay, setActiveDay] = useState<number | null>(1);
   const [isBooking, setIsBooking] = useState(false);
 
-  // Safely grab the mock or live itinerary
   const itinerary = tour.itinerary || [];
   const isCustom = tour.isCustom || false;
 
@@ -25,22 +25,15 @@ export default function TourDetailClient({ tour }: { tour: any }) {
   return (
     <div className="w-full max-w-7xl mx-auto px-6 lg:px-12 py-16 lg:py-32 flex flex-col lg:flex-row gap-16 xl:gap-24 relative z-10 bg-[#131A14]">
       
-      {/* 1. MAIN LEFT COLUMN (Itinerary & Details) */}
       <div className="flex-1 flex flex-col gap-16">
-        
-        {/* Storytelling Description */}
         <div className="flex flex-col gap-6">
            <h2 className="text-[#B8860B] tracking-[0.3em] font-bold uppercase text-[10px]">The Experience</h2>
            <h3 className="text-4xl md:text-5xl font-serif text-[#FAFAF8] leading-tight">{tour.description_heading || `Journey into the heart of ${tour.location}`}</h3>
            <p className="text-white/60 text-base md:text-lg leading-relaxed max-w-3xl whitespace-pre-wrap">
              {tour.description_body || tour.description}
-             {!isCustom && (
-                 <></>
-             )}
            </p>
         </div>
 
-        {/* What's Included Grid */}
         <div className="bg-[#1A241B] rounded-[32px] p-8 md:p-12 border border-white/5 shadow-2xl">
           <h3 className="text-2xl font-serif text-white mb-8 border-b border-white/10 pb-4">
                {isCustom ? "Concierge Services Included" : "Curated Inclusions"}
@@ -57,7 +50,6 @@ export default function TourDetailClient({ tour }: { tour: any }) {
           </div>
         </div>
 
-        {/* Dynamic State: Day-By-Day Itinerary vs Custom Contact block */}
         <div className="flex flex-col gap-8">
            <h2 className="text-[#B8860B] tracking-[0.3em] font-bold uppercase text-[10px]">
               {isCustom ? "Personalized Craftsmanship" : "Daily Flow"}
@@ -67,7 +59,6 @@ export default function TourDetailClient({ tour }: { tour: any }) {
            </h3>
            
            {isCustom ? (
-               // Explicit Custom Contact Hook extracted from CSV "Special Wishes via Contact Form" request
                <div className="bg-[#B8860B]/5 border border-[#B8860B]/20 rounded-3xl p-8 md:p-12 flex flex-col gap-6">
                   <div className="w-16 h-16 rounded-full bg-[#B8860B]/20 flex items-center justify-center mb-2">
                      <MessageSquare className="text-[#E8D3A2]" size={28} />
@@ -81,7 +72,6 @@ export default function TourDetailClient({ tour }: { tour: any }) {
                   </Link>
                </div>
            ) : (
-               // Standard Iteration
                <div className="flex flex-col gap-4">
                  {itinerary.map((day: any) => (
                    <div 
@@ -115,20 +105,16 @@ export default function TourDetailClient({ tour }: { tour: any }) {
                </div>
            )}
         </div>
-
       </div>
 
-
-      {/* 2. RIGHT COLUMN: Sticky Booking Widget */}
       <div className="w-full lg:w-[400px] shrink-0">
         <div className="sticky top-32 flex flex-col gap-6">
-          
           <div className="w-full bg-[#1A241B] rounded-[32px] p-8 md:p-10 border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
             <h4 className="text-[#B8860B] text-[10px] font-bold uppercase tracking-[0.2em] mb-4">Investment</h4>
             
             <div className="flex items-end gap-2 mb-2">
               <span className="text-5xl font-serif text-white">
-                 {isCustom ? "TBD" : `$${tour.price.toLocaleString()}`}
+                 {isCustom ? "TBD" : <Price amount={tour.price} />}
               </span>
               {!isCustom && <span className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1 pb-1">/ Person</span>}
             </div>
@@ -136,7 +122,7 @@ export default function TourDetailClient({ tour }: { tour: any }) {
             <p className="text-[#FAFAF8]/50 text-xs leading-relaxed mb-8 pb-8 border-b border-white/5">
               {isCustom 
                  ? "Our concierge will provide a transparent, itemized invoice once your custom itinerary is sculpted." 
-                 : `Secure your journey with a $${tour.deposit.toLocaleString()} refundable deposit today. Complete balance due 30 days prior to departure.`}
+                 : <>Secure your journey with a <Price amount={tour.deposit} /> refundable deposit today. Complete balance due 30 days prior to departure.</>}
             </p>
 
             <div className="flex flex-col gap-4 mb-8">
@@ -180,10 +166,8 @@ export default function TourDetailClient({ tour }: { tour: any }) {
               <span className="text-white/50 text-xs leading-relaxed">Cancel securely for a full refund up to 90 days before your departure.</span>
             </div>
           </div>
-
         </div>
       </div>
-
     </div>
   );
 }

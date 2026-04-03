@@ -84,7 +84,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <span className="text-white/40 text-[8px] sm:text-[9px] uppercase tracking-[0.2em] font-bold block mb-1">WhatsApp & Call</span>
-                    <span className="text-base sm:text-lg font-medium text-white/90">0202 713 806</span>
+                    <span className="text-base sm:text-lg font-medium text-white/90">+233 202 713 806</span>
                   </div>
                 </a>
 
@@ -104,7 +104,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <span className="text-white/40 text-[8px] sm:text-[9px] uppercase tracking-[0.2em] font-bold block mb-1">Location</span>
-                    <span className="text-base sm:text-lg font-medium text-white/90">Accra, Ghana</span>
+                    <span className="text-base sm:text-lg font-medium text-white/90">Tse Addo, Accra - Ghana</span>
                   </div>
                 </div>
               </div>
