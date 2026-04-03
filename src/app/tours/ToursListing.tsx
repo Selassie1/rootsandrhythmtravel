@@ -22,11 +22,16 @@ interface Tour {
 
 export default function ToursListing({ initialTours }: { initialTours: Tour[] }) {
   const [activeFilter, setActiveFilter] = useState('ALL');
-  
-  const filters = ['ALL', 'CELEBRATIONS', 'DIASPORA CONNECTION', 'SPIRITUAL IMMERSION'];
+  const filters = [
+    { label: 'ALL', value: 'ALL' },
+    { label: 'CELEBRATIONS', value: 'CELEBRATION' },
+    { label: 'DIASPORA CONNECTION', value: 'DIASPORA' },
+    { label: 'SPIRITUAL IMMERSION', value: 'SPIRITUAL' },
+    { label: 'ADVENTURE', value: 'ADVENTURE' },
+  ];
 
   const filteredTours = initialTours.filter(tour => 
-    activeFilter === 'ALL' ? true : tour.category === activeFilter
+    activeFilter === 'ALL' ? true : (tour as any).experience === activeFilter
   );
 
   return (
@@ -44,15 +49,15 @@ export default function ToursListing({ initialTours }: { initialTours: Tour[] })
         <div className="flex flex-wrap items-center justify-center gap-2 p-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] w-max max-w-full mx-auto shadow-2xl overflow-x-auto no-scrollbar">
           {filters.map(filter => (
             <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
+              key={filter.value}
+              onClick={() => setActiveFilter(filter.value)}
               className={`px-5 py-2.5 rounded-full text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase transition-all duration-300 ${
-                activeFilter === filter 
+                activeFilter === filter.value 
                   ? 'bg-[#E8D3A2] text-[#1A241B] shadow-[0_0_20px_rgba(232,211,162,0.4)]' 
                   : 'text-white/60 border border-transparent hover:border-white/20 hover:text-white bg-transparent'
               }`}
             >
-              {filter}
+              {filter.label}
             </button>
           ))}
         </div>

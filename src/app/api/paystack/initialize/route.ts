@@ -4,12 +4,6 @@ import { getSiteURL } from '@/utils/url-helper';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    
-    if (!process.env.PAYSTACK_SECRET_KEY) {
-      console.error("CRITICAL: PAYSTACK_SECRET_KEY is NOT defined in environment.");
-      return NextResponse.json({ error: "Server Configuration Error: Missing Gateway Credentials" }, { status: 500 });
-    }
-
     console.log("Paystack Initialize Request:", { 
        guestEmail: body.guestEmail, 
        totalAmount: body.totalAmount, 
@@ -77,7 +71,6 @@ export async function POST(req: NextRequest) {
     });
 
     const payload = await response.json();
-    console.log("Paystack Response status:", response.status, payload);
 
     if (payload.status === true) {
       return NextResponse.json({ 
@@ -86,12 +79,11 @@ export async function POST(req: NextRequest) {
          reference: payload.data.reference
       });
     } else {
-      console.error("Paystack API Error Payload:", payload);
-      return NextResponse.json({ error: payload.message || "Paystack initialization failed" }, { status: 400 });
+      return NextResponse.json({ error: payload.message }, { status: 400 });
     }
 
-  } catch (error: any) {
-    console.error("CRITICAL: Paystack API Initialization Error:", error.message, error.stack);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+  } catch (error) {
+    console.error("Paystack API Initialization Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

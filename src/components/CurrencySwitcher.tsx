@@ -8,7 +8,7 @@ import { useCurrency } from '@/context/CurrencyContext';
 
 const CURRENCIES = ['USD', 'GHS', 'EUR', 'GBP', 'CAD'];
 
-export default function CurrencySwitcher({ isScrolled }: { isScrolled: boolean }) {
+export default function CurrencySwitcher({ isScrolled, direction = 'down' }: { isScrolled: boolean, direction?: 'up' | 'down' }) {
   const [isOpen, setIsOpen] = useState(false);
   const { currency, setCurrency } = useCurrency();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -27,10 +27,10 @@ export default function CurrencySwitcher({ isScrolled }: { isScrolled: boolean }
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl transition-all cursor-pointer group border ${
+        className={`flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded-2xl transition-all cursor-pointer group ${
           isScrolled 
-            ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' 
-            : 'bg-white/10 border-transparent hover:bg-white backdrop-blur-md text-white hover:text-black'
+            ? 'bg-white/5 hover:bg-white/10 text-white' 
+            : 'bg-white/10 hover:bg-white backdrop-blur-md text-white hover:text-black'
         }`}
       >
         <Globe size={18} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform duration-500" />
@@ -41,10 +41,10 @@ export default function CurrencySwitcher({ isScrolled }: { isScrolled: boolean }
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0, y: direction === 'up' ? -10 : 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            className={`absolute left-1/2 -translate-x-1/2 md:left-auto md:right-0 md:translate-x-0 bottom-full mb-4 md:bottom-auto md:top-full md:mt-4 w-44 p-2 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[60] border border-white/10 bg-[#1A241B]/95 backdrop-blur-xl`}
+            exit={{ opacity: 0, y: direction === 'up' ? -10 : 10, scale: 0.95 }}
+            className={`absolute right-0 ${direction === 'up' ? 'bottom-full mb-4' : 'top-full mt-4'} w-40 p-2 rounded-2xl shadow-2xl z-[60] border border-white/10 bg-[#1A241B]`}
           >
             <div className="flex flex-col gap-1">
               {CURRENCIES.map((code) => (

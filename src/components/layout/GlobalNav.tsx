@@ -259,6 +259,11 @@ export default function GlobalNav() {
               </div>
               
               <div className="flex flex-col gap-6 md:gap-8 w-full items-center">
+                {/* Mobile Currency Selection - Moved Upwards & Direction UP */}
+                <div className="mb-4">
+                  <CurrencySwitcher isScrolled={true} direction="up" />
+                </div>
+
                 {navLinks.map((link, i) => (
                   <motion.div 
                     key={link.name}
@@ -276,11 +281,6 @@ export default function GlobalNav() {
                     </Link>
                   </motion.div>
                 ))}
-                
-                {/* Mobile Currency Selection */}
-                <div className="mt-8">
-                  <CurrencySwitcher isScrolled={true} />
-                </div>
               </div>
 
               <motion.div

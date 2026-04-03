@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, Calendar, CreditCard, ArrowRight, ShieldCheck, UserCheck } from 'lucide-react';
 import Price from '@/components/Price';
 
-declare const PaystackPop: any;
-
 export default function CheckoutEngine({ tour, currentUser }: { tour: any, currentUser: any }) {
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -61,33 +59,18 @@ export default function CheckoutEngine({ tour, currentUser }: { tour: any, curre
         })
       });
 
-      if (!resp.ok) {
-        const errorData = await resp.json().catch(() => ({}));
-        throw new Error(errorData.error || `Server returned ${resp.status}`);
-      }
-
-      const data = await resp.json();
+      const { authorization_url } = await resp.json();
       
-      if (data.access_code) {
-        try {
-          const paystack = new PaystackPop();
-          paystack.resumeTransaction(data.access_code);
-          setIsProcessing(false);
-        } catch (scriptErr) {
-          console.error("Paystack Inline Script Error:", scriptErr);
-          // Fallback if script not loaded yet
-          if (data.authorization_url) window.location.href = data.authorization_url;
-          else throw new Error("Payment script not ready. Please refresh.");
-        }
-      } else if (data.authorization_url) {
-        window.location.href = data.authorization_url;
+      if (authorization_url) {
+        // Redirect directly to Paystack Secure Portal
+        window.location.href = authorization_url;
       } else {
         alert("Failed to initialize payment gateway.");
         setIsProcessing(false);
       }
-    } catch (err: any) {
-      console.error("Checkout Error:", err);
-      alert(err.message || "System error communicating with Paystack.");
+    } catch (err) {
+      console.error(err);
+      alert("System error communicating with Paystack.");
       setIsProcessing(false);
     }
   };

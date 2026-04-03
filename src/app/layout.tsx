@@ -3,7 +3,6 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import GlobalNav from "@/components/layout/GlobalNav";
 import PageTransition from "@/components/layout/PageTransition";
-import Script from "next/script";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -33,7 +32,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased text-white bg-black`}>
-        <Script src="https://js.paystack.co/v2/inline.js" strategy="beforeInteractive" />
         <CurrencyProvider>
           <GlobalNav />
           <PageTransition>
