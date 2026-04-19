@@ -68,7 +68,7 @@ export default function TourFilters({ initialTours }: { initialTours: Tour[] }) 
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
         <div>
           <h2 className="text-4xl md:text-5xl font-serif text-white mb-4">Curated Journeys</h2>
-          <p className="text-white/50 tracking-widest uppercase text-xs font-bold">Select your immersive experience</p>
+          <p className="text-white/50 tracking-widest uppercase text-xs font-bold">Select your preferred type</p>
         </div>
 
         {/* Filter Pills */}

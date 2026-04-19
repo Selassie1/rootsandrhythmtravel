@@ -212,7 +212,7 @@ export default function DashboardClient({ user, profile, bookings, recentTours =
                             )}
                              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0D0A] via-[#0A0D0A]/40 to-transparent" />
                              <div className="absolute bottom-0 left-0 p-6 md:p-8 w-full z-10 text-left">
-                                <span className="text-[#B8860B] text-[8px] md:text-[9px] font-bold uppercase tracking-widest block mb-1 drop-shadow-lg">Curated Experience</span>
+                                <span className="text-[#B8860B] text-[8px] md:text-[9px] font-bold uppercase tracking-widest block mb-1 drop-shadow-lg">Curated Tour</span>
                                 <h4 className="text-lg md:text-2xl font-serif font-light text-white/90 line-clamp-1 mb-1">{tour.title}</h4>
                                 <div className="flex items-center gap-3 text-white/40 text-[8px] md:text-[9px] font-medium tracking-[0.2em] uppercase">
                                   <span>{tour.duration_days} Days</span>

@@ -33,5 +33,5 @@ export const travelerMapping: Record<string, string> = {
   'COUPLE': 'Couple',
   'FAMILY': 'Family',
   'SMALL_GROUP': 'Small Group',
-  'LARGE_GROUP': 'Large / Educational Group'
+  'LARGE_GROUP': 'Large Group'
 };

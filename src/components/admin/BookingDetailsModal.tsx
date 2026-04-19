@@ -89,7 +89,7 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
 
           <div className="flex flex-col gap-3">
              <h3 className="text-white/30 text-[10px] uppercase font-black tracking-[0.2em] flex items-center gap-2">
-                <Calendar size={12} /> Experience Parameters
+                <Calendar size={12} /> Tour Parameters
              </h3>
              <div className="bg-white/5 p-4 rounded-xl border border-white/5 flex flex-col gap-3">
                 <div>

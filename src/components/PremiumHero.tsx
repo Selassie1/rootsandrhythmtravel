@@ -20,7 +20,6 @@ export default function PremiumHero() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentDest = destinations[currentIndex];
   
-  const [activeTab, setActiveTab] = useState('Tours');
 
   const [region, setRegion] = useState('');
   const [experience, setExperience] = useState('');
@@ -187,40 +186,7 @@ export default function PremiumHero() {
 
         {/* Bottom Section: Find Journey / Booking Bar */}
         <div className="absolute bottom-[5vh] md:bottom-[10vh] left-1/2 -translate-x-1/2 w-full max-w-[95vw] lg:w-[1050px] flex flex-col items-center z-30">
-            <div className="w-full flex items-end justify-center relative z-20 h-[64px]">
-              <div className="absolute left-1/2 -translate-x-1/2 -top-10 md:top-auto md:translate-x-0 md:left-4 md:bottom-2 lg:bottom-6 flex items-center gap-2 md:gap-3 text-white z-40 scale-75 md:scale-100 origin-center md:origin-left">
-                <Sun className="text-[#fcfcda] w-8 h-8 md:w-10 md:h-10 drop-shadow-lg" fill="#fcfcda" strokeWidth={1} />
-                <div className="flex flex-col leading-tight pt-1">
-                  <span className="text-[10px] tracking-widest uppercase font-medium">Find Your</span>
-                  <span className="text-xs font-bold tracking-widest uppercase">Journey</span>
-                </div>
-              </div>
 
-              <div className="flex items-end gap-0 relative translate-y-[1px] z-10 md:px-6 w-full md:w-auto">
-                  <div className="absolute left-0 md:left-6 right-0 md:right-6 bottom-0 top-0 bg-[#F2F5D5] rounded-t-xl md:rounded-t-2xl -z-10
-                    before:content-[''] before:absolute before:w-4 before:h-4 before:bg-transparent before:bottom-0 before:-left-4 before:rounded-br-xl before:shadow-[10px_10px_0_0_#F2F5D5]
-                    after:content-[''] after:absolute after:w-4 after:h-4 after:bg-transparent after:bottom-0 after:-right-4 after:rounded-bl-xl after:shadow-[-10px_10px_0_0_#F2F5D5]
-                  " />
-
-                  {['Tours', 'Events', 'Custom'].map((tab) => (
-                    <div key={tab} className="relative z-10 flex-1 md:flex-none flex">
-                      {activeTab === tab && (
-                        <motion.div
-                          layoutId="activeTabBubble"
-                          transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
-                          className="absolute inset-0 bg-white rounded-t-xl md:rounded-t-2xl z-0 shadow-none
-                            before:content-[''] before:absolute before:w-4 before:h-4 before:bg-transparent before:bottom-0 before:-left-4 before:rounded-br-xl before:shadow-[10px_10px_0_0_white]
-                            after:content-[''] after:absolute after:w-4 after:h-4 after:bg-transparent after:bottom-0 after:-right-4 after:rounded-bl-xl after:shadow-[-10px_10px_0_0_white]
-                          "
-                        />
-                      )}
-                      <button onClick={() => setActiveTab(tab)} className={`relative w-full px-2 md:px-12 py-2 md:py-3 text-[10px] md:text-sm font-semibold transition-colors duration-300 z-10 flex items-center justify-center outline-none ${activeTab === tab ? 'text-gray-900' : 'text-gray-600 hover:text-gray-900'}`}>
-                        {tab}
-                      </button>
-                    </div>
-                  ))}
-              </div>
-            </div>
             
             <div ref={dropdownRef} className="bg-white rounded-[24px] p-2 md:p-4 lg:pl-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between shadow-2xl z-20 relative w-full gap-2 transition-all">
               <div className="grid grid-cols-2 lg:flex lg:flex-1 gap-2 md:gap-3">
@@ -254,14 +220,14 @@ export default function PremiumHero() {
                   </AnimatePresence>
                 </div>
 
-                {/* Experience */}
+                {/* Experience
                 <div className="relative flex items-center justify-between gap-2 bg-gray-50 rounded-xl md:rounded-2xl px-3 md:px-5 py-2.5 md:py-3 group hover:bg-[#f1f5f9] transition-colors cursor-pointer min-h-[50px] md:min-h-0" onClick={() => setOpenDropdown(openDropdown === 'experience' ? null : 'experience')}>
                   <div className="flex items-center gap-2 md:gap-3 w-full pr-4 md:pr-8">
                     <TreePalm className="text-gray-400 flex-shrink-0" size={16} />
                     <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-[8px] uppercase tracking-tighter text-gray-400 font-bold lg:hidden">Experience</span>
+                      <span className="text-[8px] uppercase tracking-tighter text-gray-400 font-bold lg:hidden">Type</span>
                       <span className={`text-[10px] md:text-sm font-medium tracking-wide truncate ${experience ? 'text-gray-900' : 'text-gray-500 uppercase'}`}>
-                        {experience === 'ALL' ? 'All Types' : (experienceMapping[experience] || 'TYPE')}
+                        {experience === 'ALL' ? 'Experiences' : (experienceMapping[experience] || 'EXPERIENCES')}
                       </span>
                     </div>
                   </div>
@@ -276,13 +242,13 @@ export default function PremiumHero() {
                       >
                         {experiences.map((exp) => (
                           <button key={exp} onClick={(e) => { e.stopPropagation(); setExperience(exp); setOpenDropdown(null); }} className={`w-full text-left px-3 py-2 text-xs md:text-sm rounded-xl transition-colors ${experience === exp ? 'bg-[#2b3a4a] text-white' : 'text-gray-600 hover:bg-[#f1f5f9]'}`}>
-                            {exp === 'ALL' ? 'All Experiences' : experienceMapping[exp]}
+                            {exp === 'ALL' ? 'Experiences' : experienceMapping[exp]}
                           </button>
                         ))}
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
+                </div> */}
 
                 {/* When */}
                 <div className="relative flex items-center justify-between gap-2 bg-gray-50 rounded-xl md:rounded-2xl px-3 md:px-5 py-2.5 md:py-3 group hover:bg-[#f1f5f9] transition-colors cursor-pointer min-h-[50px] md:min-h-0" onClick={() => setOpenDropdown(openDropdown === 'when' ? null : 'when')}>
@@ -291,7 +257,7 @@ export default function PremiumHero() {
                     <div className="flex flex-col min-w-0 flex-1">
                       <span className="text-[8px] uppercase tracking-tighter text-gray-400 font-bold lg:hidden">When</span>
                       <span className={`text-[10px] md:text-sm font-medium tracking-wide truncate ${when ? 'text-gray-900' : 'text-gray-500 uppercase'}`}>
-                        {when === 'ALL' ? 'Anytime' : (when || 'WHEN')}
+                        {when === 'ALL' ? 'Anytime' : (when || 'DATE')}
                       </span>
                     </div>
                   </div>

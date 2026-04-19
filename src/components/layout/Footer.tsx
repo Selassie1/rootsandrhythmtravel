@@ -95,6 +95,7 @@ const Footer = () => {
              <div className="flex gap-6">
                 <a href="/privacy" className="hover:text-[#E8D3A2] transition-colors">Privacy Policy</a>
                 <a href="/terms" className="hover:text-[#E8D3A2] transition-colors">Terms of Service</a>
+                <a href="/refund-policy" className="hover:text-[#E8D3A2] transition-colors">Refund Policy</a>
              </div>
              <span className="text-[#E8D3A2]/60">Curated in Ghana</span>
            </div>

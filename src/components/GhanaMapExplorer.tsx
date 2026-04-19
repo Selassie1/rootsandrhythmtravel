@@ -250,10 +250,10 @@ const GhanaMapExplorer = () => {
               </ComposableMap>
 
               {/* Mobile Legend/Hint */}
-              <div className="absolute bottom-0 right-0 sm:hidden flex items-center gap-2 text-[10px] text-gray-400 font-medium">
+              {/* <div className="absolute bottom-0 right-0 sm:hidden flex items-center gap-2 text-[10px] text-gray-400 font-medium">
                 <div className="w-2 h-2 rounded-full bg-[#D4AF37]"></div>
                 Active Regions
-              </div>
+              </div> */}
             </div>
           </div>
 

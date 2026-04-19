@@ -236,7 +236,7 @@ export default function TourForm({ initialData, onSuccess, onCancel }: { initial
         <h2 className="text-[#B8860B] font-bold text-xs uppercase tracking-[0.2em] mb-4">Targeting & Schedule</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Experience Category</label>
+            <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Tour Type</label>
             <PremiumSelector 
                value={form.watch("experience")} 
                onChange={(v) => form.setValue("experience", v as any)} 

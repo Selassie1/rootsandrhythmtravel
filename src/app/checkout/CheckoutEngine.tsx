@@ -8,6 +8,7 @@ import Price from '@/components/Price';
 export default function CheckoutEngine({ tour, currentUser }: { tour: any, currentUser: any }) {
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   
   // Checkout Form State natively tied to DB booking table expectations
   const [passengers, setPassengers] = useState(1);
@@ -273,9 +274,22 @@ export default function CheckoutEngine({ tour, currentUser }: { tour: any, curre
                </span>
             </div>
 
+            <div className="flex items-start gap-3 mb-6">
+               <input 
+                 type="checkbox" 
+                 id="agree_policy"
+                 checked={agreedToPolicy}
+                 onChange={(e) => setAgreedToPolicy(e.target.checked)}
+                 className="mt-1 w-4 h-4 bg-black/50 border border-white/20 rounded accent-[#B8860B] flex-shrink-0 cursor-pointer"
+               />
+               <label htmlFor="agree_policy" className="text-white/60 text-[10px] leading-relaxed cursor-pointer select-none">
+                 I agree to the <a href="/refund-policy" target="_blank" className="text-[#E8D3A2] hover:text-white underline transition-colors">cancellation policy</a> and the terms of service.
+               </label>
+            </div>
+
             <button 
               onClick={handleCheckoutInit}
-              disabled={step !== 2 || isProcessing}
+              disabled={step !== 2 || isProcessing || !agreedToPolicy}
               className="w-full relative overflow-hidden group py-5 bg-[#FAFAF8] hover:bg-[#E8D3A2] text-black font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl flex items-center justify-center gap-3 transition-colors shadow-2xl disabled:opacity-20 disabled:cursor-not-allowed"
             >
               <span className="relative z-10">{isProcessing ? 'Initializing Secure Engine...' : 'Authorize via Paystack'}</span>
