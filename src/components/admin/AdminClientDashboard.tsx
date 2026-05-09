@@ -12,6 +12,7 @@ import { DeleteTourAction } from './TourActions';
 import TourForm from './TourForm';
 import { updateAdminProfile } from '@/actions/admin';
 import BookingDetailsModal from './BookingDetailsModal';
+import SiteSettingsForm from './SiteSettingsForm';
 
 // Reusing TourForm logic but we keep Form standalone due to complexity
 type DashboardData = {
@@ -21,6 +22,7 @@ type DashboardData = {
   tickets: any[];
   transactions: any[];
   profile: any;
+  siteSettings: Record<string, string>;
   overview: {
      totalRevenue: number;
      totalBookings: number;
@@ -33,7 +35,7 @@ export default function AdminClientDashboard({ initialData }: { initialData: Das
   const [editTourId, setEditTourId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
 
-  const { tours, bookings, users, tickets, transactions, overview, profile } = initialData;
+  const { tours, bookings, users, tickets, transactions, overview, profile, siteSettings } = initialData;
 
   const renderContent = () => {
     switch(activeTab) {
@@ -45,7 +47,7 @@ export default function AdminClientDashboard({ initialData }: { initialData: Das
       case 'users': return <UsersTab users={users} />;
       case 'tickets': return <TicketsTab tickets={tickets} />;
       case 'transactions': return <TransactionsTab transactions={transactions} />;
-      case 'settings': return <SettingsTab profile={profile} />;
+      case 'settings': return <SettingsTab profile={profile} siteSettings={siteSettings} />;
       default: return <OverviewTab data={overview} setTab={setActiveTab} />;
     }
   };
@@ -604,14 +606,14 @@ function TicketsTab({ tickets }: { tickets: any[] }) {
   );
 }
 
-function SettingsTab({ profile }: { profile: any }) {
-  const [activePane, setActivePane] = useState<'profile' | 'security'>('profile');
+function SettingsTab({ profile, siteSettings }: { profile: any; siteSettings: Record<string, string> }) {
+  const [activePane, setActivePane] = useState<'profile' | 'security' | 'social'>('profile');
 
   return (
     <div className="p-8 pb-32 w-full max-w-7xl mx-auto flex flex-col gap-8 fade-in min-h-[500px]">
       <header className="flex flex-col gap-2">
          <h1 className="text-3xl font-serif text-white tracking-wide">Core Settings</h1>
-         <p className="text-white/50 text-sm">Manage administrative credentials and system security.</p>
+         <p className="text-white/50 text-sm">Manage administrative credentials, security, and site configuration.</p>
       </header>
 
       <div className="flex flex-col md:flex-row gap-8 mt-4">
@@ -623,12 +625,16 @@ function SettingsTab({ profile }: { profile: any }) {
              <button onClick={() => setActivePane('security')} className={`flex items-center text-left gap-3 px-4 py-3 rounded-xl uppercase tracking-widest text-[10px] font-bold transition-all ${activePane === 'security' ? 'bg-[#B8860B]/10 text-[#B8860B] border border-[#B8860B]/20' : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'}`}>
                 <Lock size={16} /> Access & Security
              </button>
+             <button onClick={() => setActivePane('social')} className={`flex items-center text-left gap-3 px-4 py-3 rounded-xl uppercase tracking-widest text-[10px] font-bold transition-all ${activePane === 'social' ? 'bg-[#B8860B]/10 text-[#B8860B] border border-[#B8860B]/20' : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'}`}>
+                <Activity size={16} /> Social & Footer Links
+             </button>
          </nav>
 
          {/* Settings Pane */}
          <div className="flex-1 max-w-2xl">
             {activePane === 'profile' && <ProfileEditor profile={profile} />}
             {activePane === 'security' && <SecurityEditor email={profile.email} />}
+            {activePane === 'social' && <SiteSettingsForm initialSettings={siteSettings} />}
          </div>
       </div>
     </div>

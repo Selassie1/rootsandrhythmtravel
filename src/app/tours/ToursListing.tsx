@@ -31,7 +31,7 @@ export default function ToursListing({ initialTours }: { initialTours: Tour[] })
   ];
 
   const filteredTours = initialTours.filter(tour => 
-    activeFilter === 'ALL' ? true : (tour as any).experience === activeFilter
+    activeFilter === 'ALL' ? true : (Array.isArray((tour as any).experience) ? (tour as any).experience.includes(activeFilter) : (tour as any).experience === activeFilter)
   );
 
   return (

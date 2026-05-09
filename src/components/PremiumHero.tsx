@@ -3,11 +3,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, User, Search, MapPin, Timer, TreePalm, Sun, ChevronDown } from 'lucide-react';
+import { Globe, Search, MapPin, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import VerticalGreetings from './VerticalGreetings';
-import { getFilterOptions, searchTours, TourSearchResult } from '@/actions/tours';
-import { regionMapping, experienceMapping, travelerMapping } from '@/utils/tour-mappings';
+import { searchTours, TourSearchResult } from '@/actions/tours';
+import { regionMapping, travelerMapping } from '@/utils/tour-mappings';
 import SearchResultsModal from './SearchResultsModal';
 
 const destinations = [
@@ -22,30 +22,14 @@ export default function PremiumHero() {
   
 
   const [region, setRegion] = useState('');
-  const [experience, setExperience] = useState('');
-  const [when, setWhen] = useState('');
   const [travelers, setTravelers] = useState('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
-  // Dynamic filter state
-  const [availableMonths, setAvailableMonths] = useState<string[]>([]);
   const [searchResults, setSearchResults] = useState<TourSearchResult[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    async function loadFilters() {
-      try {
-        const { months } = await getFilterOptions();
-        setAvailableMonths(months);
-      } catch (error) {
-        console.error("Failed to load filters:", error);
-      }
-    }
-    loadFilters();
-  }, []);
 
   const handleSearch = async () => {
     setIsSearchLoading(true);
@@ -53,8 +37,6 @@ export default function PremiumHero() {
     try {
       const results = await searchTours({
         region: region === 'ALL' ? undefined : region,
-        experience: experience === 'ALL' ? undefined : experience,
-        when: when === 'ALL' ? undefined : when,
         travelers: travelers === 'ALL' ? undefined : travelers,
       });
       setSearchResults(results);
@@ -75,11 +57,8 @@ export default function PremiumHero() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Use keys from mappings for internal state, display names for UI
   const regions = ['ALL', ...Object.keys(regionMapping)];
-  const experiences = ['ALL', ...Object.keys(experienceMapping)];
   const travelerOptions = ['ALL', ...Object.keys(travelerMapping)];
-  const months = ['ALL', ...availableMonths];
 
   return (
     <div className={`relative w-full h-screen min-h-[800px] bg-black overflow-hidden font-sans ${isModalOpen ? 'z-50' : 'z-0'}`}>
@@ -249,36 +228,6 @@ export default function PremiumHero() {
                     )}
                   </AnimatePresence>
                 </div> */}
-
-                {/* When */}
-                <div className="relative flex items-center justify-between gap-2 bg-gray-50 rounded-xl md:rounded-2xl px-3 md:px-5 py-2.5 md:py-3 group hover:bg-[#f1f5f9] transition-colors cursor-pointer min-h-[50px] md:min-h-0" onClick={() => setOpenDropdown(openDropdown === 'when' ? null : 'when')}>
-                  <div className="flex items-center gap-2 md:gap-3 w-full pr-4 md:pr-8">
-                    <Timer className="text-gray-400 flex-shrink-0" size={16} />
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-[8px] uppercase tracking-tighter text-gray-400 font-bold lg:hidden">When</span>
-                      <span className={`text-[10px] md:text-sm font-medium tracking-wide truncate ${when ? 'text-gray-900' : 'text-gray-500 uppercase'}`}>
-                        {when === 'ALL' ? 'Anytime' : (when || 'DATE')}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="absolute right-2 md:right-3 w-6 h-6 md:w-8 md:h-8 rounded-full bg-[#e2e8ef] flex items-center justify-center text-[#64748b]">
-                    <ChevronDown size={14} className={`transition-transform ${openDropdown === 'when' ? 'rotate-180' : ''}`} />
-                  </div>
-                  <AnimatePresence>
-                    {openDropdown === 'when' && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} 
-                        className="absolute bottom-full left-0 mb-3 w-48 md:w-64 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50 flex flex-col gap-1 no-scrollbar overflow-y-auto"
-                      >
-                        {months.map((m) => (
-                          <button key={m} onClick={() => { setWhen(m); setOpenDropdown(null); }} className={`w-full text-left px-3 py-2 text-xs md:text-sm rounded-xl transition-colors ${when === m ? 'bg-[#2b3a4a] text-white' : 'text-gray-600 hover:bg-[#f1f5f9]'}`}>
-                            {m === 'ALL' ? 'Anytime' : m}
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
 
                 {/* Travelers */}
                 <div className="relative flex items-center justify-between gap-2 bg-gray-50 rounded-xl md:rounded-2xl px-3 md:px-5 py-2.5 md:py-3 group hover:bg-[#f1f5f9] transition-colors cursor-pointer min-h-[50px] md:min-h-0" onClick={() => setOpenDropdown(openDropdown === 'travelers' ? null : 'travelers')}>

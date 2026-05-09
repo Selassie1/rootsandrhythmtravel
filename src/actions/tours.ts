@@ -2,6 +2,18 @@
 
 import { createClient } from "@/utils/supabase/server";
 
+export async function getPublicSiteSettings(): Promise<Record<string, string>> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.from('site_settings').select('*');
+    const settings: Record<string, string> = {};
+    data?.forEach((row: any) => { settings[row.key] = row.value; });
+    return settings;
+  } catch {
+    return {};
+  }
+}
+
 export type TourSearchResult = {
   title: string;
   slug: string;
@@ -43,7 +55,6 @@ export async function getFilterOptions() {
 export async function searchTours(params: {
   region?: string;
   experience?: string;
-  when?: string;
   travelers?: string;
 }) {
   const supabase = await createClient();
@@ -52,26 +63,15 @@ export async function searchTours(params: {
   if (params.region && params.region !== 'ALL') {
     query = query.eq('region', params.region);
   }
-  
+
   if (params.experience && params.experience !== 'ALL') {
-    query = query.eq('experience', params.experience);
+    // experience is now a JSONB array — use contains to match tours that include this type
+    query = query.contains('experience', JSON.stringify([params.experience]));
   }
 
   if (params.travelers && params.travelers !== 'ALL') {
-    query = query.eq('ideal_for', params.travelers);
-  }
-
-  if (params.when && params.when !== 'ALL') {
-    const [month, year] = params.when.split(' ');
-    // Create UTC date boundaries for the month
-    const start = new Date(`${month} 1, ${year}`);
-    const end = new Date(start);
-    end.setMonth(start.getMonth() + 1);
-    
-    const startDate = start.toISOString().split('T')[0];
-    const endDate = end.toISOString().split('T')[0];
-    
-    query = query.gte('travel_window', startDate).lt('travel_window', endDate);
+    // ideal_for is now a JSONB array — use contains to match tours that include this group type
+    query = query.contains('ideal_for', JSON.stringify([params.travelers]));
   }
 
   const { data, error } = await query.order('created_at', { ascending: false });

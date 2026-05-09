@@ -5,7 +5,7 @@ import { useState, useTransition, useRef, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Plus, Trash2, Loader2, Image as ImageIcon, ChevronDown, Calendar, Users, MapPin, Tag, X, Upload, CheckCircle } from "lucide-react";
+import { Plus, Trash2, Loader2, Image as ImageIcon, ChevronDown, X } from "lucide-react";
 import { createTour, updateTour, uploadTourImage } from "@/actions/admin";
 import { useRouter } from "next/navigation";
 
@@ -25,11 +25,12 @@ const tourSchema = z.object({
     'BONO', 'BONO_EAST', 'AHAFO', 'NORTH_EAST', 'OTI', 
     'WESTERN_NORTH', 'MULTIPLE'
   ]).default('GREATER_ACCRA'),
-  experience: z.enum(['CELEBRATION', 'DIASPORA', 'SPIRITUAL', 'ADVENTURE', 'EDUCATIONAL']).default('DIASPORA'),
-  ideal_for: z.enum(['SOLO', 'COUPLE', 'FAMILY', 'SMALL_GROUP', 'LARGE_GROUP']).default('SMALL_GROUP'),
+  experience: z.array(z.enum(['CELEBRATION', 'DIASPORA', 'SPIRITUAL', 'ADVENTURE', 'EDUCATIONAL'])).default(['DIASPORA']),
+  ideal_for: z.array(z.enum(['SOLO', 'COUPLE', 'FAMILY', 'SMALL_GROUP', 'LARGE_GROUP'])).default(['SMALL_GROUP']),
   travel_window: z.string().optional(),
   location: z.string().optional(),
   hero_image_url: z.string().optional(),
+  gallery_images: z.array(z.string()).default([]),
   is_active: z.boolean().default(true),
   curated_inclusions: z.array(z.string()).default([]),
   itinerary: z.array(
@@ -47,28 +48,46 @@ export default function TourForm({ initialData, onSuccess, onCancel }: { initial
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
+  const [galleryUploading, setGalleryUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<TourFormValues>({
     resolver: zodResolver(tourSchema) as any,
-    defaultValues: initialData || {
-      title: "",
-      slug: "",
-      description_heading: "",
-      description_body: "",
-      price: 0,
-      deposit: 0,
-      duration_days: 1,
-      region: "GREATER_ACCRA",
-      experience: "DIASPORA",
-      ideal_for: "SMALL_GROUP",
-      travel_window: new Date().toISOString().split('T')[0],
-      location: "",
-      hero_image_url: "",
-      is_active: true,
-      curated_inclusions: [""],
-      itinerary: [{ day: 1, title: "", details: "" }],
-    },
+    defaultValues: initialData
+      ? {
+          ...initialData,
+          // Normalize experience: legacy single string → array
+          experience: Array.isArray(initialData.experience)
+            ? initialData.experience
+            : initialData.experience
+            ? [initialData.experience]
+            : ['DIASPORA'],
+          // Normalize ideal_for: legacy single string → array
+          ideal_for: Array.isArray(initialData.ideal_for)
+            ? initialData.ideal_for
+            : initialData.ideal_for
+            ? [initialData.ideal_for]
+            : ['SMALL_GROUP'],
+          gallery_images: initialData.gallery_images || [],
+        }
+      : {
+          title: "",
+          slug: "",
+          description_heading: "",
+          description_body: "",
+          price: 0,
+          deposit: 0,
+          duration_days: 1,
+          region: "GREATER_ACCRA",
+          experience: ["DIASPORA"],
+          ideal_for: ["SMALL_GROUP"],
+          location: "",
+          hero_image_url: "",
+          gallery_images: [],
+          is_active: true,
+          curated_inclusions: [""],
+          itinerary: [{ day: 1, title: "", details: "" }],
+        },
   });
 
   const { fields: inclusionFields, append: appendInclusion, remove: removeInclusion } = useFieldArray({
@@ -106,6 +125,36 @@ export default function TourForm({ initialData, onSuccess, onCancel }: { initial
     }
   };
 
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setGalleryUploading(true);
+      setError(null);
+      if (!e.target.files || e.target.files.length === 0) return;
+
+      const currentGallery = form.getValues('gallery_images') || [];
+      const uploads = Array.from(e.target.files).map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const result = await uploadTourImage(formData);
+        if (!result.success) throw new Error(result.error || 'Upload failed');
+        return result.url!;
+      });
+
+      const newUrls = await Promise.all(uploads);
+      form.setValue('gallery_images', [...currentGallery, ...newUrls]);
+    } catch (err: any) {
+      setError(err.message || 'Error uploading gallery images');
+    } finally {
+      setGalleryUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const removeGalleryImage = (index: number) => {
+    const current = form.getValues('gallery_images') || [];
+    form.setValue('gallery_images', current.filter((_, i) => i !== index));
+  };
+
   const onSubmit = (data: TourFormValues) => {
     setError(null);
     startTransition(async () => {
@@ -140,6 +189,7 @@ export default function TourForm({ initialData, onSuccess, onCancel }: { initial
   };
 
   const currentImageUrl = form.watch("hero_image_url");
+  const currentGalleryImages = form.watch("gallery_images") || [];
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit as any)} className="w-full max-w-7xl mx-auto flex flex-col gap-6 pb-20">
@@ -231,38 +281,127 @@ export default function TourForm({ initialData, onSuccess, onCancel }: { initial
         </div>
       </div>
 
-      {/* Targeting & Schedule */}
+      {/* Gallery Images */}
       <div className="bg-[#1A241B] border border-white/5 rounded-2xl p-8 space-y-6">
-        <h2 className="text-[#B8860B] font-bold text-xs uppercase tracking-[0.2em] mb-4">Targeting & Schedule</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="flex items-center justify-between">
           <div>
-            <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Tour Type</label>
-            <PremiumSelector 
-               value={form.watch("experience")} 
-               onChange={(v) => form.setValue("experience", v as any)} 
-               options={EXPERIENCES}
-            />
+            <h2 className="text-[#B8860B] font-bold text-xs uppercase tracking-[0.2em]">Photo Gallery</h2>
+            <p className="text-white/30 text-[11px] mt-1">Additional images displayed as a slideshow on the tour page.</p>
           </div>
-
-          <div>
-            <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Ideal Audience</label>
-            <PremiumSelector 
-               value={form.watch("ideal_for")} 
-               onChange={(v) => form.setValue("ideal_for", v as any)} 
-               options={CATEGORIES}
+          <div className="relative">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleGalleryUpload}
+              disabled={galleryUploading}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
             />
-          </div>
-
-          <div>
-            <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Travel Window / Date</label>
-            <div className="relative">
-              <input 
-                type="date"
-                {...form.register("travel_window")}
-                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#B8860B] transition-colors appearance-none"
-              />
-              <Calendar className="absolute right-4 top-3 text-white/20 pointer-events-none" size={18} />
+            <div className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-2.5 text-white/70 text-xs font-bold uppercase tracking-wider transition-colors">
+              {galleryUploading ? <><Loader2 className="animate-spin" size={14} /> Uploading...</> : <><Plus size={14} /> Add Images</>}
             </div>
+          </div>
+        </div>
+
+        {currentGalleryImages.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {currentGalleryImages.map((url, index) => (
+              <div key={index} className="relative group aspect-square rounded-xl overflow-hidden bg-black/30 border border-white/10">
+                <img src={url} alt={`Gallery ${index + 1}`} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={() => removeGalleryImage(index)}
+                    className="p-2 bg-red-500/80 text-white rounded-lg hover:bg-red-500 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <span className="absolute bottom-2 left-2 text-[9px] font-bold text-white/60 bg-black/50 px-1.5 py-0.5 rounded">
+                  #{index + 1}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="border border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center gap-3 text-white/20">
+            <ImageIcon size={32} />
+            <p className="text-xs uppercase tracking-wider">No gallery images yet. Click "Add Images" above.</p>
+          </div>
+        )}
+        <input type="hidden" {...form.register("gallery_images")} />
+      </div>
+
+      {/* Targeting */}
+      <div className="bg-[#1A241B] border border-white/5 rounded-2xl p-8 space-y-6">
+        <h2 className="text-[#B8860B] font-bold text-xs uppercase tracking-[0.2em] mb-4">Targeting</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-white/50 text-xs uppercase tracking-wider mb-3">Tour Type <span className="text-white/25 normal-case tracking-normal font-normal">(select all that apply)</span></label>
+            <div className="flex flex-wrap gap-2">
+              {EXPERIENCES.map((exp) => {
+                const selected: string[] = form.watch("experience") || [];
+                const isChecked = selected.includes(exp.value);
+                return (
+                  <button
+                    key={exp.value}
+                    type="button"
+                    onClick={() => {
+                      const current: string[] = form.getValues("experience") || [];
+                      if (isChecked) {
+                        form.setValue("experience", current.filter(v => v !== exp.value) as any);
+                      } else {
+                        form.setValue("experience", [...current, exp.value] as any);
+                      }
+                    }}
+                    className={`px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all ${
+                      isChecked
+                        ? 'bg-[#B8860B]/20 border-[#B8860B]/60 text-[#E8D3A2]'
+                        : 'bg-black/20 border-white/10 text-white/40 hover:border-white/30 hover:text-white/70'
+                    }`}
+                  >
+                    {exp.label}
+                  </button>
+                );
+              })}
+            </div>
+            {(form.watch("experience") || []).length === 0 && (
+              <p className="text-yellow-500/60 text-[10px] mt-2">Select at least one tour type.</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-white/50 text-xs uppercase tracking-wider mb-3">Ideal Audience <span className="text-white/25 normal-case tracking-normal font-normal">(select all that apply)</span></label>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map((cat) => {
+                const selected: string[] = form.watch("ideal_for") || [];
+                const isChecked = selected.includes(cat.value);
+                return (
+                  <button
+                    key={cat.value}
+                    type="button"
+                    onClick={() => {
+                      const current: string[] = form.getValues("ideal_for") || [];
+                      if (isChecked) {
+                        form.setValue("ideal_for", current.filter(v => v !== cat.value) as any);
+                      } else {
+                        form.setValue("ideal_for", [...current, cat.value] as any);
+                      }
+                    }}
+                    className={`px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all ${
+                      isChecked
+                        ? 'bg-[#B8860B]/20 border-[#B8860B]/60 text-[#E8D3A2]'
+                        : 'bg-black/20 border-white/10 text-white/40 hover:border-white/30 hover:text-white/70'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                );
+              })}
+            </div>
+            {(form.watch("ideal_for") || []).length === 0 && (
+              <p className="text-yellow-500/60 text-[10px] mt-2">Select at least one group type.</p>
+            )}
           </div>
         </div>
       </div>

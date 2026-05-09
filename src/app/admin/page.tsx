@@ -1,6 +1,6 @@
 // src/app/admin/page.tsx
 import { createClient } from '@/utils/supabase/server';
-import { getAdminTours, getAllBookings, getAllUsers, getAllTickets, getAllTransactions } from '@/actions/admin';
+import { getAdminTours, getAllBookings, getAllUsers, getAllTickets, getAllTransactions, getSiteSettings } from '@/actions/admin';
 import AdminClientDashboard from '@/components/admin/AdminClientDashboard';
 
 export const dynamic = 'force-dynamic';
@@ -18,12 +18,13 @@ export default async function AdminMasterApp() {
     .single();
 
   // Parallel Raw Data Fetches using our Admin supersession keys
-  const [tours, bookings, users, tickets, transactions] = await Promise.all([
+  const [tours, bookings, users, tickets, transactions, siteSettings] = await Promise.all([
      getAdminTours(),
      getAllBookings(),
      getAllUsers(),
      getAllTickets(),
-     getAllTransactions()
+     getAllTransactions(),
+     getSiteSettings()
   ]);
 
   // Derive Overview Metrics
@@ -49,6 +50,7 @@ export default async function AdminMasterApp() {
      users,
      tickets,
      transactions,
+     siteSettings,
      profile: { ...profile, email: user.email },
      overview: {
         totalRevenue,

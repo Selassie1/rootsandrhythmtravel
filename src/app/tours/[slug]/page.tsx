@@ -1,8 +1,8 @@
 import { createClient } from '@/utils/supabase/server';
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
 import { Calendar, MapPin } from 'lucide-react';
 import TourDetailClient from '../TourDetailClient';
+import TourImageCarousel from '../TourImageCarousel';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,26 +44,20 @@ export default async function TourSetupPage({ params }: { params: Promise<{ slug
     }
   }
 
+  const allImages = [
+    tour.hero_image_url || '/images/Square.jpeg',
+    ...((tour.gallery_images as string[] | null) ?? []).filter(Boolean),
+  ];
+
   return (
     <div className="min-h-screen bg-[#131A14]">
-      
-      {/* 1. Immersive Cinematic Hero */}
-      <div className="relative w-full h-screen min-h-[600px] overflow-hidden">
-        
-        {/* Render hero image with extreme cinematic grading */}
-        <Image 
-          src={tour.hero_image_url || '/images/Square.jpeg'}
-          alt={tour.title}
-          fill
-          unoptimized={true}
-          className="object-cover object-center scale-105"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#131A14] via-black/40 to-black/60" />
 
-        {/* Floating Data Payload */}
-        <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-12 lg:p-24 pb-32 max-w-7xl mx-auto z-10 w-full fade-in">
-          
+      {/* 1. Immersive Cinematic Hero — carousel if multiple images, static otherwise */}
+      <div className="relative">
+        <TourImageCarousel images={allImages} title={tour.title} />
+
+        {/* Floating Data Payload overlaid on the carousel */}
+        <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-12 lg:p-24 pb-32 max-w-7xl mx-auto z-10 w-full pointer-events-none fade-in">
           <div className="flex flex-wrap items-center gap-4 mb-6">
             <span className="flex items-center gap-2 text-white text-[10px] font-bold uppercase tracking-widest bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
               <MapPin size={14} className="text-[#B8860B]" /> {tour.location}
@@ -72,11 +66,9 @@ export default async function TourSetupPage({ params }: { params: Promise<{ slug
               <Calendar size={14} className="text-[#B8860B]" /> {tour.duration_days} Days
             </span>
           </div>
-
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-[#FAFAF8] max-w-4xl drop-shadow-2xl leading-[0.9]">
             {tour.title}
           </h1>
-
         </div>
       </div>
 

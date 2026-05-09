@@ -548,7 +548,33 @@ export async function deleteTicket(id: string) {
 }
 
 // ==========================================
-// 5. Admin Settings (Settings Actions)
+// 5. Site Settings (Social Links, etc.)
+// ==========================================
+
+export async function getSiteSettings(): Promise<Record<string, string>> {
+  await requireAdmin();
+  const adminClient = getAdminClient();
+  const { data } = await adminClient.from('site_settings').select('*');
+  const settings: Record<string, string> = {};
+  data?.forEach((row: any) => { settings[row.key] = row.value; });
+  return settings;
+}
+
+export async function updateSiteSettings(settings: Record<string, string>) {
+  await requireAdmin();
+  const adminClient = getAdminClient();
+  const rows = Object.entries(settings).map(([key, value]) => ({ key, value }));
+  const { error } = await adminClient.from('site_settings').upsert(rows, { onConflict: 'key' });
+  if (error) {
+    console.error('Error updating site settings:', error);
+    return { success: false, error: error.message };
+  }
+  revalidatePath('/');
+  return { success: true };
+}
+
+// ==========================================
+// 6. Admin Profile (Settings Actions)
 // ==========================================
 
 export async function updateAdminProfile(formData: { first_name: string; last_name: string; phone: string }) {

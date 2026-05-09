@@ -153,7 +153,7 @@ export default function AboutPage() {
             className="order-1 lg:order-2 relative aspect-[4/5] rounded-[24px] sm:rounded-[32px] overflow-hidden group shadow-[0_32px_64px_rgba(0,0,0,0.6)]"
           >
             <Image 
-              src="/images/elikem1.jpeg" 
+              src="/images/elikem2.jpg" 
               alt="Elikem — Founder of Roots & Rhythm"
               fill
               className="object-cover transition-transform duration-1000 group-hover:scale-105"
