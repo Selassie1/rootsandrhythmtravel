@@ -13,7 +13,7 @@ interface Tour {
   hero_image_url: string | null;
   description_body: string | null;
   duration_days: number;
-  experience: string;
+  experience: string | string[];
 }
 
 const FeaturedJourneys = () => {
@@ -28,8 +28,9 @@ const FeaturedJourneys = () => {
     fetchData();
   }, []);
 
-  const formatExperience = (exp: string) => {
-    return exp.charAt(0).toUpperCase() + exp.slice(1).toLowerCase();
+  const formatExperience = (exp: string | string[]) => {
+    const values = Array.isArray(exp) ? exp : [exp];
+    return values.map(e => e.charAt(0).toUpperCase() + e.slice(1).toLowerCase()).join(' · ');
   };
 
   return (
