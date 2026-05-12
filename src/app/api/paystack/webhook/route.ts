@@ -247,7 +247,7 @@ export async function POST(req: NextRequest) {
                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #131A14; color: #FAFAF8; padding: 40px; border-radius: 16px;">
                  <h1 style="color: #E8D3A2; margin-bottom: 24px;">Expedition Authorized.</h1>
                  <p style="color: #ffffff; opacity: 0.8; line-height: 1.6;">Dear ${guestName || 'Traveler'},</p>
-                 <p style="color: #ffffff; opacity: 0.8; line-height: 1.6;">Your payment of $ {amountPaid.toLocaleString()} was successfully securely routed.</p>
+                 <p style="color: #ffffff; opacity: 0.8; line-height: 1.6;">Your payment of $${tourValuePaidUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD was successfully securely routed.</p>
                  <div style="background: #1A241B; padding: 24px; border-radius: 12px; margin: 32px 0;">
                    <p style="margin: 0 0 12px 0;"><strong style="color: #B8860B; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Tracking Reference</strong><br/>${reference}</p>
                    <p style="margin: 0 0 12px 0;"><strong style="color: #B8860B; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Type</strong><br/>${bookingId ? 'Balance Settlement' : 'Initial Reservation'}</p>

@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { User, Calendar, CreditCard, ArrowRight, ShieldCheck, UserCheck } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { User, Calendar, CreditCard, ArrowRight, ShieldCheck, UserCheck, X } from 'lucide-react';
 import Price from '@/components/Price';
 
 export default function CheckoutEngine({ tour, currentUser }: { tour: any, currentUser: any }) {
   const [step, setStep] = useState(1);
+  const [paystackUrl, setPaystackUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   
@@ -38,45 +39,46 @@ export default function CheckoutEngine({ tour, currentUser }: { tour: any, curre
 
   const handleCheckoutInit = async () => {
     setIsProcessing(true);
-    
-    // Aggressively pinging our /api/paystack/initialize endpoint
+
     try {
       const resp = await fetch('/api/paystack/initialize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-           tourId: tour.id,
-           tourName: tour.title || tour.name,
-           paymentOption,
-           travelDate,
-           passengers,
-           totalAmount: grandTotal,
-           totalFullPrice,
-           tourValuePaid: baseTotal,
-           guestEmail,
-           guestName: guestName || resolveFullName() || 'Valued Traveler',
-           guestPhone,
-           userId: currentUser?.id
-        })
+          tourId: tour.id,
+          tourName: tour.title || tour.name,
+          paymentOption,
+          travelDate,
+          passengers,
+          totalAmount: grandTotal,
+          totalFullPrice,
+          tourValuePaid: baseTotal,
+          guestEmail,
+          guestName: guestName || resolveFullName() || 'Valued Traveler',
+          guestPhone,
+          userId: currentUser?.id,
+        }),
       });
 
-      const { authorization_url } = await resp.json();
-      
-      if (authorization_url) {
-        // Redirect directly to Paystack Secure Portal
-        window.location.href = authorization_url;
-      } else {
-        alert("Failed to initialize payment gateway.");
+      const data = await resp.json();
+
+      if (!data.access_code || !data.reference) {
+        alert(data.error || 'Failed to initialize payment gateway.');
         setIsProcessing(false);
+        return;
       }
+
+      // Open Paystack inside our own iframe modal — never leaves the page
+      setPaystackUrl(data.authorization_url);
     } catch (err) {
       console.error(err);
-      alert("System error communicating with Paystack.");
+      alert('Payment gateway error. Please try again.');
       setIsProcessing(false);
     }
   };
 
   return (
+    <>
     <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-16 items-start relative z-10">
       
       {/* LEFT COLUMN: MULTI-STEP FORM */}
@@ -304,5 +306,48 @@ export default function CheckoutEngine({ tour, currentUser }: { tour: any, curre
       </div>
 
     </div>
+
+    {/* Paystack Iframe Modal — payment happens on-page, URL never changes */}
+    {paystackUrl && (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div className="relative w-full max-w-[480px] rounded-2xl overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.9)] flex flex-col bg-white" style={{ height: '620px' }}>
+          {/* Modal header */}
+          <div className="flex items-center justify-between px-5 py-3 bg-[#131A14] border-b border-white/10 flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={14} className="text-[#B8860B]" />
+              <span className="text-white text-[10px] font-bold uppercase tracking-[0.2em]">Secure Checkout · Paystack</span>
+            </div>
+            <button
+              onClick={() => { setPaystackUrl(null); setIsProcessing(false); }}
+              className="p-1.5 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-all"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* The Paystack iframe */}
+          <iframe
+            src={paystackUrl}
+            className="flex-1 w-full border-0"
+            title="Paystack Secure Checkout"
+            onLoad={(e) => {
+              try {
+                const href = (e.currentTarget.contentWindow as Window).location.href;
+                if (href.includes('/checkout/verify')) {
+                  const ref = new URL(href).searchParams.get('reference');
+                  if (ref) {
+                    setPaystackUrl(null);
+                    window.location.href = `/checkout/verify?reference=${ref}`;
+                  }
+                }
+              } catch {
+                // Still on Paystack's domain (cross-origin) — ignore
+              }
+            }}
+          />
+        </div>
+      </div>
+    )}
+    </>
   );
 }
