@@ -3,12 +3,16 @@ import { notFound } from 'next/navigation';
 import { Calendar, MapPin } from 'lucide-react';
 import TourDetailClient from '../TourDetailClient';
 import TourImageCarousel from '../TourImageCarousel';
+import TourReviews from '../TourReviews';
+import { getReviewsForTour } from '@/actions/tours';
 
 export const dynamic = 'force-dynamic';
 
 export default async function TourSetupPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
 
   let { data: tour } = await supabase
     .from('tours')
@@ -49,6 +53,9 @@ export default async function TourSetupPage({ params }: { params: Promise<{ slug
     ...((tour.gallery_images as string[] | null) ?? []).filter(Boolean),
   ];
 
+  const reviews = tour.id === 'test-1234' ? [] : await getReviewsForTour(tour.id);
+  const userExistingReview = user ? (reviews.find(r => r.user_id === user.id) ?? null) : null;
+
   return (
     <div className="min-h-screen bg-[#131A14]">
 
@@ -74,6 +81,14 @@ export default async function TourSetupPage({ params }: { params: Promise<{ slug
 
       {/* 2. Client Side Interaction Shell */}
       <TourDetailClient tour={tour} />
+
+      {/* 3. Reviews Section */}
+      <TourReviews
+        tourId={tour.id}
+        initialReviews={reviews}
+        currentUserId={user?.id ?? null}
+        userExistingReview={userExistingReview}
+      />
     </div>
   );
 }

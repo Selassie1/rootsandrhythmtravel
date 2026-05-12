@@ -116,6 +116,17 @@ CREATE TABLE public.site_settings (
   value TEXT NOT NULL DEFAULT ''
 );
 
+CREATE TABLE public.reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tour_id UUID REFERENCES public.tours(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  reviewer_name TEXT NOT NULL,
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  body TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+  UNIQUE (tour_id, user_id)
+);
+
 -- ==========================================
 -- 3. Helper Functions
 -- ==========================================
@@ -146,6 +157,7 @@ ALTER TABLE public.payment_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 
 -- Profiles
 CREATE POLICY "Users view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
@@ -178,6 +190,13 @@ CREATE POLICY "Admins view leads" ON public.leads FOR SELECT USING (public.is_ad
 -- Site Settings
 CREATE POLICY "Public can read site settings" ON public.site_settings FOR SELECT USING (TRUE);
 CREATE POLICY "Admins control site settings" ON public.site_settings FOR ALL USING (public.is_admin());
+
+-- Reviews
+CREATE POLICY "Anyone can view reviews" ON public.reviews FOR SELECT USING (TRUE);
+CREATE POLICY "Authenticated users can insert review" ON public.reviews FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own review" ON public.reviews FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own review" ON public.reviews FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Admins control reviews" ON public.reviews FOR ALL USING (public.is_admin());
 
 -- ==========================================
 -- 5. Automated Profile Creation Trigger

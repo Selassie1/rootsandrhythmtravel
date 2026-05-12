@@ -84,6 +84,47 @@ export async function searchTours(params: {
   return data as TourSearchResult[];
 }
 
+export type Review = {
+  id: string;
+  user_id: string | null;
+  reviewer_name: string;
+  rating: number;
+  body: string;
+  created_at: string;
+};
+
+export async function getReviewsForTour(tourId: string): Promise<Review[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('id, user_id, reviewer_name, rating, body, created_at')
+    .eq('tour_id', tourId)
+    .order('created_at', { ascending: false });
+
+  if (error) return [];
+  return data as Review[];
+}
+
+export async function submitReview(tourId: string, rating: number, body: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { error: 'You must be logged in to leave a review.' };
+
+  const reviewerName = user.user_metadata?.full_name
+    || `${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`.trim()
+    || user.email?.split('@')[0]
+    || 'Traveler';
+
+  const { error } = await supabase.from('reviews').upsert(
+    { tour_id: tourId, user_id: user.id, reviewer_name: reviewerName, rating, body },
+    { onConflict: 'tour_id,user_id' }
+  );
+
+  if (error) return { error: error.message };
+  return {};
+}
+
 export async function getActiveTours() {
   const supabase = await createClient();
   const { data, error } = await supabase
