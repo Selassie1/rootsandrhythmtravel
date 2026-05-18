@@ -23,6 +23,8 @@ export const metadata: Metadata = {
 };
 
 import { CurrencyProvider } from "@/context/CurrencyContext";
+import { CartProvider } from "@/context/CartContext";
+import CartDrawer from "@/components/CartDrawer";
 
 export default function RootLayout({
   children,
@@ -33,10 +35,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased text-white bg-black`}>
         <CurrencyProvider>
-          <GlobalNav />
-          <PageTransition>
-            {children}
-          </PageTransition>
+          <CartProvider>
+            <GlobalNav />
+            <CartDrawer />
+            <PageTransition>
+              {children}
+            </PageTransition>
+          </CartProvider>
         </CurrencyProvider>
       </body>
     </html>

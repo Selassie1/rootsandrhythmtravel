@@ -2,24 +2,41 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Check, ChevronDown, CheckCircle2, Shield, ArrowRight, MessageSquare } from 'lucide-react';
+import { Check, ChevronDown, Shield, ArrowRight, MessageSquare, ShoppingBag, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Price from '@/components/Price';
+import { useCart } from '@/context/CartContext';
 
 export default function TourDetailClient({ tour }: { tour: any }) {
   const router = useRouter();
   const [activeDay, setActiveDay] = useState<number | null>(1);
   const [isBooking, setIsBooking] = useState(false);
+  const { addItem, isInCart, openDrawer } = useCart();
 
   const itinerary = tour.itinerary || [];
   const isCustom = tour.isCustom || false;
+  const alreadyInCart = isInCart(tour.id);
 
-  const handleBooking = () => {
+  const handleAddToCart = () => {
+    if (alreadyInCart) { openDrawer(); return; }
+    addItem({
+      tourId: tour.id,
+      tourTitle: tour.title,
+      tourSlug: tour.slug,
+      heroImageUrl: tour.hero_image_url || '/images/Square.jpeg',
+      price: tour.price,
+      deposit: tour.deposit,
+      durationDays: tour.duration_days,
+      location: tour.location || '',
+    });
+  };
+
+  const handleBookNow = () => {
     setIsBooking(true);
     setTimeout(() => {
       router.push(`/checkout?tour=${tour.id}`);
-    }, 1000);
+    }, 600);
   };
 
   return (
@@ -137,21 +154,37 @@ export default function TourDetailClient({ tour }: { tour: any }) {
             </div>
 
             {isCustom ? (
-               <Link 
+               <Link
                  href="/contact"
                  className="w-full py-5 bg-[#FAFAF8] hover:bg-[#E8D3A2] text-black font-bold uppercase tracking-[0.2em] text-xs rounded-2xl flex items-center justify-center gap-3 transition-colors shadow-2xl relative"
                >
                  Inquire Now
                </Link>
             ) : (
-               <button 
-                 onClick={handleBooking}
-                 disabled={isBooking}
-                 className="w-full py-5 bg-[#FAFAF8] hover:bg-[#E8D3A2] text-black font-bold uppercase tracking-[0.2em] text-xs rounded-2xl flex items-center justify-center gap-3 transition-colors shadow-2xl relative overflow-hidden group disabled:opacity-50 cursor-pointer"
-               >
-                 <span className="relative z-10">{isBooking ? 'Securing Spot...' : 'Book This Journey'}</span>
-                 {!isBooking && <ArrowRight size={16} className="relative z-10 transition-transform group-hover:translate-x-1" strokeWidth={2.5} />}
-               </button>
+               <div className="flex flex-col gap-3">
+                 {/* Add to Cart */}
+                 <button
+                   onClick={handleAddToCart}
+                   className={`w-full py-4 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 transition-all cursor-pointer border ${
+                     alreadyInCart
+                       ? 'bg-[#B8860B]/10 border-[#B8860B]/40 text-[#E8D3A2] hover:bg-[#B8860B]/20'
+                       : 'bg-transparent border-white/15 text-white hover:border-[#B8860B]/50 hover:text-[#E8D3A2]'
+                   }`}
+                 >
+                   <ShoppingBag size={15} />
+                   {alreadyInCart ? 'View in Cart' : 'Add to Cart'}
+                 </button>
+                 {/* Book Now */}
+                 <button
+                   onClick={handleBookNow}
+                   disabled={isBooking}
+                   className="w-full py-5 bg-[#FAFAF8] hover:bg-[#E8D3A2] text-black font-bold uppercase tracking-[0.2em] text-xs rounded-2xl flex items-center justify-center gap-3 transition-colors shadow-2xl relative overflow-hidden group disabled:opacity-50 cursor-pointer"
+                 >
+                   <Zap size={14} className="relative z-10" />
+                   <span className="relative z-10">{isBooking ? 'Redirecting...' : 'Book Now'}</span>
+                   {!isBooking && <ArrowRight size={14} className="relative z-10 transition-transform group-hover:translate-x-1" strokeWidth={2.5} />}
+                 </button>
+               </div>
             )}
             <p className="text-center text-[#FAFAF8]/30 pt-4 text-[9px] uppercase tracking-widest font-bold">
               Secure SSL Encryption

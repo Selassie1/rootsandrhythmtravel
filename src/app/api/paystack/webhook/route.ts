@@ -86,15 +86,16 @@ export async function POST(req: NextRequest) {
         process.env.SUPABASE_SERVICE_ROLE_KEY! // Required to create Ghost Accounts and insert Bookings from Webhook safely
       );
 
-      // DEDUP CHECK: If the verify page already created this booking, skip entirely
-      const { data: existingBooking } = await supabaseAdmin.from('bookings').select('id, user_id').eq('paystack_reference', reference).single();
+      // DEDUP CHECK: limit(1) handles both single-tour and cart (multiple bookings, same reference)
+      const { data: existingBookingsArr } = await supabaseAdmin.from('bookings').select('id, user_id').eq('paystack_reference', reference).limit(1);
+      const existingBooking = existingBookingsArr?.[0] ?? null;
       
       if (existingBooking) {
          console.log('Webhook: Booking already exists for reference', reference, '- skipping duplicate insert.');
          
          // Still log the transaction if it doesn't exist yet
-         const { data: existingTx } = await supabaseAdmin.from('payment_transactions').select('id').eq('payment_reference', reference).single();
-         if (!existingTx) {
+         const { data: existingTxArr } = await supabaseAdmin.from('payment_transactions').select('id').eq('payment_reference', reference).limit(1);
+         if (!existingTxArr?.length) {
             await supabaseAdmin.from('payment_transactions').insert({
                user_id: existingBooking.user_id || null,
                booking_id: existingBooking.id,
@@ -179,6 +180,32 @@ export async function POST(req: NextRequest) {
                payment_status: newStatus
             }).eq('id', resolvedBookingId);
          }
+      } else if (metadata.cart_items && metadata.cart_items !== '') {
+         // MULTI-TOUR CART: Create one booking per cart item using original reference
+         try {
+            const cartItems: Array<{ tourId: string; passengers: number; travelDate: string; price: number; deposit: number }> = JSON.parse(metadata.cart_items);
+            console.log('Webhook: Cart checkout — creating', cartItems.length, 'bookings');
+            for (const item of cartItems) {
+               const itemAmountPaid = paymentOption === 'pay_deposit' ? item.deposit * item.passengers : item.price * item.passengers;
+               const { error: cartErr } = await supabaseAdmin.from('bookings').insert({
+                  user_id: targetUserId,
+                  guest_name: guestName,
+                  guest_email: customerEmail,
+                  guest_phone: guestPhone,
+                  tour_id: item.tourId,
+                  travel_dates: item.travelDate,
+                  travelers_count: item.passengers,
+                  total_price: item.price * item.passengers,
+                  amount_paid: itemAmountPaid,
+                  payment_status: paymentOption === 'pay_deposit' ? 'DEPOSIT_PAID' : 'FULLY_PAID',
+                  paystack_reference: reference, // same reference for all cart bookings (dedup via limit(1))
+               });
+               if (cartErr) console.error('Webhook: Cart booking insert error:', cartErr);
+            }
+            resolvedBookingId = null;
+         } catch (cartParseErr) {
+            console.error('Webhook: Cart items parse error:', cartParseErr);
+         }
       } else {
          // This is a NEW booking — include all guest contact details
          // total_price = full trip cost (no fees), amount_paid = tour value paid now (no fees)
@@ -242,7 +269,7 @@ export async function POST(req: NextRequest) {
            await resend.emails.send({
              from: 'concierge@rootsandrhythmtravel.com', // Update with verified sender domain if available, or 'onboarding@resend.dev' for testing
              to: customerEmail,
-             subject: `Roots & Rhythm Travels: Itinerary Confirmed [${reference}]`,
+             subject: `Roots & Rhythm Travels: ${metadata.cart_items ? 'Expeditions' : 'Itinerary'} Confirmed [${reference}]`,
              html: `
                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #131A14; color: #FAFAF8; padding: 40px; border-radius: 16px;">
                  <h1 style="color: #E8D3A2; margin-bottom: 24px;">Expedition Authorized.</h1>

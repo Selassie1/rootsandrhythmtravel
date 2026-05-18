@@ -75,7 +75,9 @@ export default async function CheckoutVerifyPage({
             const guestName = extractMeta('guest_name');
             const guestPhone = extractMeta('guest_phone');
 
-            const { data: existingBooking } = await supabaseAdmin.from('bookings').select('id, user_id, total_price').eq('paystack_reference', reference).single();
+            // limit(1) instead of single() — cart payments create multiple rows with the same reference
+            const { data: existingBookingsArr } = await supabaseAdmin.from('bookings').select('id, user_id, total_price').eq('paystack_reference', reference).limit(1);
+            const existingBooking = existingBookingsArr?.[0] ?? null;
             
             if (existingBooking) {
                // Resolve correct USD amounts for potential patching
@@ -184,7 +186,56 @@ export default async function CheckoutVerifyPage({
                }
             }
             
-            if (!existingBooking && (!metaBookingId || metaBookingId.trim() === '') && tourId && tourId !== 'test-1234') {
+            // MULTI-TOUR CART: If cart_items present, create one booking per item
+            const cartItemsRaw = extractMeta('cart_items');
+            if (!existingBooking && cartItemsRaw && cartItemsRaw.trim() !== '') {
+               try {
+                  const cartItems: Array<{ tourId: string; tourTitle: string; passengers: number; travelDate: string; price: number; deposit: number }> = JSON.parse(cartItemsRaw);
+                  const USD_TO_GHS_RATE = 13.5;
+                  const metaChargedAmountUSD = parseFloat(extractMeta('total_amount_usd'));
+                  const metaFullPriceUSD = parseFloat(extractMeta('total_full_price_usd'));
+                  const chargedAmountUSD = !isNaN(metaChargedAmountUSD) ? metaChargedAmountUSD : ((transactionData.amount / 100) / USD_TO_GHS_RATE);
+                  const resolvedPaymentStatus = paymentOption === 'pay_deposit' ? 'DEPOSIT_PAID' : 'FULLY_PAID';
+                  const finalUserId = sessionUserId || (metadataUserId && metadataUserId.trim() !== '' ? metadataUserId : null);
+                  console.log('Verify: Cart checkout — creating', cartItems.length, 'bookings. userId:', finalUserId);
+
+                  for (const item of cartItems) {
+                     const itemAmountPaid = paymentOption === 'pay_deposit' ? item.deposit * item.passengers : item.price * item.passengers;
+                     const { data: cartBooking, error: cartBookingErr } = await supabaseAdmin.from('bookings').insert({
+                        user_id: finalUserId,
+                        guest_name: guestName,
+                        guest_email: customerEmail,
+                        guest_phone: guestPhone,
+                        tour_id: item.tourId,
+                        travel_dates: item.travelDate,
+                        travelers_count: item.passengers,
+                        total_price: item.price * item.passengers,
+                        amount_paid: itemAmountPaid,
+                        payment_status: resolvedPaymentStatus,
+                        paystack_reference: reference, // same reference for all cart bookings
+                     }).select('id').single();
+                     if (cartBookingErr) console.error('Verify: Cart booking insert error:', cartBookingErr);
+                     else console.log('Verify: Cart booking created', cartBooking?.id, 'for tour', item.tourId);
+                  }
+
+                  // Single transaction record for the combined payment
+                  const { error: cartTxErr } = await supabaseAdmin.from('payment_transactions').insert({
+                     user_id: finalUserId,
+                     booking_id: null,
+                     amount: chargedAmountUSD,
+                     currency: 'USD',
+                     payment_reference: reference,
+                     status: transactionData.status === 'success' ? 'success' : 'pending',
+                     payment_type: resolvedPaymentStatus === 'DEPOSIT_PAID' ? 'DEPOSIT' : 'FULL',
+                     metadata: { cart_items: cartItems, paystack_id: transactionData.id },
+                  });
+                  if (cartTxErr) console.error('Verify: Cart transaction insert error:', cartTxErr);
+               } catch (cartErr) {
+                  console.error('Verify: Cart items parse/insert error:', cartErr);
+               }
+            }
+
+            if (!existingBooking && (!metaBookingId || metaBookingId.trim() === '') && tourId && tourId !== 'test-1234' && tourId !== 'MULTI' && (!cartItemsRaw || cartItemsRaw.trim() === '')) {
                  // USD AMOUNT RESOLUTION: Separate tour value (no fees) from charged amount (with fees)
                  const USD_TO_GHS_RATE = 13.5;
                  const metaChargedAmountUSD = parseFloat(extractMeta('total_amount_usd'));

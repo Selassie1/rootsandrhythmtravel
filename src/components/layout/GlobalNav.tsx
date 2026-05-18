@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, User, X, Map, Ticket, User as UserIcon, BookOpen, LogOut, ChevronRight } from 'lucide-react';
+import { Globe, User, X, Map, Ticket, User as UserIcon, BookOpen, LogOut, ChevronRight, ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import CurrencySwitcher from '@/components/CurrencySwitcher';
+import { useCart } from '@/context/CartContext';
 
 const navLinks = [
   { name: 'Home', href: '/' },
@@ -22,6 +23,7 @@ export default function GlobalNav() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
+  const { items, openDrawer } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -147,6 +149,19 @@ export default function GlobalNav() {
             <div className="hidden md:block">
               <CurrencySwitcher isScrolled={isScrolled} />
             </div>
+
+            {/* Cart Icon */}
+            <button
+              onClick={openDrawer}
+              className={`relative w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center text-white transition-all cursor-pointer ${isScrolled ? 'bg-white/5 hover:bg-white/10' : 'bg-white/10 hover:bg-white/15 backdrop-blur-md'}`}
+            >
+              <ShoppingBag size={18} strokeWidth={2} />
+              {items.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#B8860B] text-black text-[9px] font-black rounded-full flex items-center justify-center shadow-lg">
+                  {items.length}
+                </span>
+              )}
+            </button>
             
             {user ? (
               <div className="relative group flex items-center justify-center">

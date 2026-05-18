@@ -29,6 +29,8 @@ export async function POST(req: NextRequest) {
     // CRITICAL: Pack financial and identity data into TOP-LEVEL metadata keys
     // Paystack custom_fields has a limit (~5-10 items) and silently drops excess fields.
     // Top-level metadata keys are always preserved in webhooks and verify API responses.
+    const { cartItems } = body; // Array present only for multi-tour cart checkout
+
     const metadataPayload = {
        // Top-level keys (always preserved — critical data goes here)
        total_amount_usd: totalAmount,
@@ -42,6 +44,8 @@ export async function POST(req: NextRequest) {
        passengers: passengers,
        guest_name: guestName,
        guest_phone: guestPhone || '',
+       // Cart items array (for multi-tour checkout) — stored as JSON string to survive Paystack roundtrip
+       cart_items: cartItems ? JSON.stringify(cartItems) : '',
        // Display-only fields for Paystack dashboard (limited to essential items)
        custom_fields: [
           { display_name: "Tour", variable_name: "tour_name", value: tourName },
