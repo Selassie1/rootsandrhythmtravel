@@ -151,17 +151,19 @@ export default function GlobalNav() {
             </div>
 
             {/* Cart Icon */}
-            <button
-              onClick={openDrawer}
-              className={`relative w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center text-white transition-all cursor-pointer ${isScrolled ? 'bg-white/5 hover:bg-white/10' : 'bg-white/10 hover:bg-white/15 backdrop-blur-md'}`}
-            >
-              <ShoppingBag size={18} strokeWidth={2} />
+            <div className="relative">
+              <button
+                onClick={openDrawer}
+                className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center text-white transition-all cursor-pointer ${isScrolled ? 'bg-white/5 hover:bg-white/10' : 'bg-white/10 hover:bg-white/15 backdrop-blur-md'}`}
+              >
+                <ShoppingBag size={18} strokeWidth={2} />
+              </button>
               {items.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#B8860B] text-black text-[9px] font-black rounded-full flex items-center justify-center shadow-lg">
+                <span className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] bg-[#B8860B] text-black text-[9px] font-black rounded-full flex items-center justify-center shadow-md pointer-events-none">
                   {items.length}
                 </span>
               )}
-            </button>
+            </div>
             
             {user ? (
               <div className="relative group flex items-center justify-center">

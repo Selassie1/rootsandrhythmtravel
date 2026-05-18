@@ -333,15 +333,15 @@ export default function CheckoutEngine({ tour, currentUser }: { tour: any, curre
             onLoad={(e) => {
               try {
                 const href = (e.currentTarget.contentWindow as Window).location.href;
-                if (href.includes('/checkout/verify')) {
-                  const ref = new URL(href).searchParams.get('reference');
-                  if (ref) {
-                    setPaystackUrl(null);
-                    window.location.href = `/checkout/verify?reference=${ref}`;
-                  }
+                // Reading href succeeds only when iframe is on our domain (same-origin).
+                // Intercept all same-origin navigations — close modal and take the main window there.
+                if (href && href !== 'about:blank') {
+                  setPaystackUrl(null);
+                  setIsProcessing(false);
+                  window.location.href = href;
                 }
               } catch {
-                // Still on Paystack's domain (cross-origin) — ignore
+                // Cross-origin (still on Paystack's domain) — ignore
               }
             }}
           />
