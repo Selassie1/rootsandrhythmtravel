@@ -78,13 +78,13 @@ export default function SiteSettingsForm({ initialSettings }: { initialSettings:
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-white/40 text-[10px] uppercase tracking-widest font-bold">X (Twitter) URL</label>
+        <label className="text-white/40 text-[10px] uppercase tracking-widest font-bold">Threads URL</label>
         <div className="relative">
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <img src="/icons/Threadslogo.svg" alt="" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 invert opacity-30" />
           <input
             {...register('twitter_url')}
             type="url"
-            placeholder="https://x.com/rootsandrhythm"
+            placeholder="https://www.threads.com/@rootsandrhythmtravel"
             className="w-full bg-black/30 border border-white/10 p-4 pl-12 rounded-xl text-white text-sm outline-none focus:border-[#B8860B] transition-colors"
           />
         </div>

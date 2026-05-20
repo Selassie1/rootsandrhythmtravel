@@ -8,7 +8,7 @@ const HowToBookPremium = () => {
   const steps = [
     {
       num: "01",
-      title: "Choose a Package",
+      title: "Choose a Journey",
       desc: "Browse our highly curated cultural and diaspora experiences."
     },
     {
@@ -19,7 +19,12 @@ const HowToBookPremium = () => {
     {
       num: "03",
       title: "Secure Reservation",
-      desc: "Confirm your booking safely online. Arrive in Ghana and let the rhythm guide you."
+      desc: "Confirm your booking safely online. We'll send you a confirmation email with all the details."
+    },
+    {
+      num: "04",
+      title: "Arrive & Feel the Rhythm",
+      desc: "We handle every detail. Your guide meets you on arrival. Come as a traveller, leave as family."
     }
   ];
 
