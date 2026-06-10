@@ -1,3 +1,5 @@
+//src/app/layout.tsx
+
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
@@ -19,7 +21,10 @@ export const metadata: Metadata = {
   description: "Authentic Ghanaian cultural immersions, celebration journeys, and diaspora connections.",
   icons: {
      icon: '/icon.png',
-  }
+  },
+  verification: {
+  google: "BFZxESKlLw-yqb8n_EhC3FNdjW4YwZ7BX4ev-5RxLJ8",
+  },
 };
 
 import { CurrencyProvider } from "@/context/CurrencyContext";
