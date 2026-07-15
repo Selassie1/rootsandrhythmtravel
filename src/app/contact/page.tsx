@@ -88,13 +88,13 @@ export default function ContactPage() {
                   </div>
                 </a>
 
-                <a href="mailto:amenuprince36@gmail.com" className="flex items-center gap-4 sm:gap-5 group py-3 sm:py-4 border-b border-white/5 hover:border-[#B8860B]/30 transition-all">
+                <a href="mailto:elikem@rootsandrhythmtravel.com" className="flex items-center gap-4 sm:gap-5 group py-3 sm:py-4 border-b border-white/5 hover:border-[#B8860B]/30 transition-all">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#B8860B]/10 rounded-xl sm:rounded-2xl flex items-center justify-center text-[#B8860B] group-hover:bg-[#B8860B] group-hover:text-[#131A14] transition-all">
                     <Mail size={18} />
                   </div>
                   <div>
                     <span className="text-white/40 text-[8px] sm:text-[9px] uppercase tracking-[0.2em] font-bold block mb-1">Email Enquiries</span>
-                    <span className="text-base sm:text-lg font-medium text-white/90">amenuprince36@gmail.com</span>
+                    <span className="text-base sm:text-lg font-medium text-white/90">elikem@rootsandrhythmtravel.com</span>
                   </div>
                 </a>
 
