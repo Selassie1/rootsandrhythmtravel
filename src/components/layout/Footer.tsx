@@ -72,7 +72,7 @@ const Footer = async () => {
           <div className="flex flex-col lg:col-span-3">
             <h4 className="text-white text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase mb-8 opacity-40">Connect</h4>
             <ul className="flex flex-col gap-5">
-              <li className="text-white/70 text-sm md:text-base hover:text-[#E8D3A2] transition-colors cursor-pointer"><a href="mailto:support@rootsandrhythmtravel.com">support@rootsandrhythmtravel.com</a></li>
+              <li className="text-white/70 text-sm md:text-base hover:text-[#E8D3A2] transition-colors cursor-pointer"><a href="mailto:elikem@rootsandrhythmtravel.com">elikem@rootsandrhythmtravel.com</a></li>
               <li className="text-white/70 text-sm md:text-base hover:text-[#E8D3A2] transition-colors cursor-pointer"><a href="tel:+233202713806">+233 (0) 20 271 3806</a></li>
               <li className="text-white/50 text-sm mt-4 tracking-wide leading-relaxed">Tse Addo, <br/>Accra, Ghana<br/>West Africa</li>
             </ul>
