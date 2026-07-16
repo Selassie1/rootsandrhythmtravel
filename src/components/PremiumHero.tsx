@@ -258,6 +258,10 @@ export default function PremiumHero() {
                     )}
                   </AnimatePresence>
                 </div>
+                
+                <div className="hidden lg:flex flex-1 items-center justify-center pointer-events-none select-none">
+                  <span className="text-gray-400/70 font-medium text-lg tracking-wider">Book Your Journey</span>
+                </div>
               </div>
 
               <button onClick={handleSearch} disabled={isSearchLoading} className="w-full lg:w-[120px] h-12 md:h-16 bg-[#2b3a4a] hover:bg-[#1a2530] disabled:bg-gray-400 text-white rounded-xl md:rounded-[32px] flex items-center justify-center transition-all flex-shrink-0 shadow-lg transform hover:scale-105 active:scale-95">
