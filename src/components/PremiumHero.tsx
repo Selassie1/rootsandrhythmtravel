@@ -260,7 +260,7 @@ export default function PremiumHero() {
                 </div>
                 
                 <div className="hidden lg:flex flex-1 items-center justify-center pointer-events-none select-none">
-                  <span className="text-gray-400/70 font-medium text-lg tracking-wider">Book Your Journey</span>
+                  <span className="text-gray-400/70 font-large text-lg tracking-wider">BOOK YOUR JOURNEY</span>
                 </div>
               </div>
 
