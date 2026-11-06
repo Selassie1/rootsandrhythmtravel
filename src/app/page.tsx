@@ -17,7 +17,7 @@ export const metadata = {
 };
 export default function Home() {
   return (
-    <main className="min-h-screen bg-black">
+    <main className="min-h-screen bg-black pt-32">
      <h1 className="px-6 py-4 text-center text-2xl font-semibold text-white">
   Ghana Tours &amp; Cultural Journeys from Accra
 </h1>
