@@ -156,9 +156,9 @@ export default function PremiumHero() {
               </motion.div>
             </div>
             <div className="hidden lg:flex flex-col gap-30 text-xs tracking-[0.1em] text-white/70 font-medium mb-10 -mr-2">
-              <a href="#" className="rotate-90 hover:text-white transition-colors">FACEBOOK</a>
+              <a href="https://www.facebook.com/rootsandrhythmtravel" className="rotate-90 hover:text-white transition-colors">FACEBOOK</a>
               <a href="#" className="rotate-90 hover:text-white transition-colors">TWITTER</a>
-              <a href="#" className="rotate-90 hover:text-white transition-colors">INSTAGRAM</a>
+              <a href="https://www.instagram.com/rootsandrhythmtravel/" className="rotate-90 hover:text-white transition-colors">INSTAGRAM</a>
             </div>
           </div>
         </div>
