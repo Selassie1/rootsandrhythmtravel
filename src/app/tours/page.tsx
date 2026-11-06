@@ -2,7 +2,11 @@ import { createClient } from '@/utils/supabase/server';
 import ToursListing from './ToursListing';
 
 export const dynamic = 'force-dynamic';
-
+export const metadata = {
+  title: "Ghana Tours & Day Trips | Roots & Rhythm Travels",
+  description:
+    "Browse Ghana tours with Roots & Rhythm Travels, from Accra city experiences to Cape Coast, Kakum and cultural journeys. Find your next adventure.",
+};
 export default async function ToursPage() {
   const supabase = await createClient();
 
