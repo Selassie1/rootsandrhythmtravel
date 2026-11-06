@@ -7,7 +7,34 @@ import TourReviews from '../TourReviews';
 import { getReviewsForTour } from '@/actions/tours';
 
 export const dynamic = 'force-dynamic';
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const supabase = await createClient();
+  const { data: tour } = await supabase
+    .from('tours')
+    .select('title, description')
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .single();
 
+  if (!tour?.title) return {};
+
+  return {
+    title: `${tour.title} | Roots & Rhythm Travels`,
+    description: String(
+      tour.description ||
+        `Explore ${tour.title} with Roots & Rhythm Travels in Ghana.`
+    )
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 160),
+  };
+}
 export default async function TourSetupPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const supabase = await createClient();
