@@ -16,7 +16,7 @@ export async function generateMetadata({
   const supabase = await createClient();
   const { data: tour } = await supabase
     .from('tours')
-    .select('title, description')
+    .select('title, description_body')
     .eq('slug', slug)
     .eq('is_active', true)
     .single();
@@ -26,7 +26,7 @@ export async function generateMetadata({
   return {
     title: `${tour.title} | Roots & Rhythm Travels`,
     description: String(
-      tour.description ||
+      tour.description_body ||
         `Explore ${tour.title} with Roots & Rhythm Travels in Ghana.`
     )
       .replace(/<[^>]*>/g, ' ')
