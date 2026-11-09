@@ -1,5 +1,6 @@
 import React from 'react';
 import { getPublicSiteSettings } from '@/actions/tours';
+import { CookieSettingsButton } from "@/components/CookieConsent";
 
 const Footer = async () => {
   const settings = await getPublicSiteSettings();
@@ -73,8 +74,8 @@ const Footer = async () => {
             <h4 className="text-white text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase mb-8 opacity-40">Connect</h4>
             <ul className="flex flex-col gap-5">
               <li className="text-white/70 text-sm md:text-base hover:text-[#E8D3A2] transition-colors cursor-pointer"><a href="mailto:elikem@rootsandrhythmtravel.com">elikem@rootsandrhythmtravel.com</a></li>
-              <li className="text-white/70 text-sm md:text-base hover:text-[#E8D3A2] transition-colors cursor-pointer"><a href="tel:+233202713806">+233 (0) 20 271 3806</a></li>
-              <li className="text-white/50 text-sm mt-4 tracking-wide leading-relaxed">Tse Addo, <br/>Accra, Ghana<br/>West Africa</li>
+              <li className="text-white/70 text-sm md:text-base hover:text-[#E8D3A2] transition-colors cursor-pointer"><a href="https://wa.me/233549796875">WhatsApp: +233 54 979 6875</a></li>
+              <li className="text-white/50 text-sm mt-4 tracking-wide leading-relaxed">Tse Addo, <br/>Accra, Ghana<br/>West Africa</li><li><CookieSettingsButton /></li>
             </ul>
           </div>
 
