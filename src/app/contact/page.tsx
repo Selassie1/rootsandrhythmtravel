@@ -78,13 +78,13 @@ export default function ContactPage() {
               <h2 className="text-2xl sm:text-3xl font-serif text-[#FAFAF8] mb-6 sm:mb-8">Direct Channels</h2>
               
               <div className="space-y-4 sm:space-y-6">
-                <a href="tel:0202713806" className="flex items-center gap-4 sm:gap-5 group py-3 sm:py-4 border-b border-white/5 hover:border-[#B8860B]/30 transition-all">
+                <a href="https://wa.me/233549796875" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 sm:gap-5 group py-3 sm:py-4 border-b border-white/5 hover:border-[#B8860B]/30 transition-all">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#B8860B]/10 rounded-xl sm:rounded-2xl flex items-center justify-center text-[#B8860B] group-hover:bg-[#B8860B] group-hover:text-[#131A14] transition-all">
                     <Phone size={18} />
                   </div>
                   <div>
                     <span className="text-white/40 text-[8px] sm:text-[9px] uppercase tracking-[0.2em] font-bold block mb-1">WhatsApp & Call</span>
-                    <span className="text-base sm:text-lg font-medium text-white/90">+233 202 713 806</span>
+                    <span className="text-base sm:text-lg font-medium text-white/90">+233 549 796 875</span>
                   </div>
                 </a>
 
