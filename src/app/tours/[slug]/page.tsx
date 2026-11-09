@@ -21,8 +21,16 @@ export async function generateMetadata({
     .eq('is_active', true)
     .single();
 
-  if (!tour?.title) return {};
-
+  if (!tour?.title) {
+    if (slug === 'build-your-own-expedition') {
+      return {
+        title: 'Build Your Own Expedition | Roots & Rhythm Travels',
+        description:
+          'Design a personalised Ghana trip with Roots & Rhythm Travels, tailored to your schedule, budget and cultural interests.',
+      };
+    }
+    return {};
+  }
   return {
     title: `${tour.title} | Roots & Rhythm Travels`,
     description: String(
