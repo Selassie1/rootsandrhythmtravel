@@ -5,6 +5,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import GlobalNav from "@/components/layout/GlobalNav";
 import PageTransition from "@/components/layout/PageTransition";
+import CookieConsent from "@/components/CookieConsent";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -48,7 +49,8 @@ export default function RootLayout({
             </PageTransition>
           </CartProvider>
         </CurrencyProvider>
-      </body>
+              <CookieConsent />
+              </body>
     </html>
   );
 }
