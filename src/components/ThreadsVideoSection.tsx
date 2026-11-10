@@ -25,7 +25,7 @@ export default function ThreadsVideoSection() {
           <iframe
             src={YOUTUBE_EMBED_URL}
             className="absolute inset-0 w-full h-full border-0"
-            title="How to Book a Tour — Roots & Rhythm Travels"
+            title="How to Book a Tour — Roots & Rhythm Travel"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />

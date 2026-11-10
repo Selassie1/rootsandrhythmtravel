@@ -11,9 +11,9 @@ import HomeFAQ from "@/components/HomeFAQ";
 import NewsletterCTA from "@/components/NewsletterCTA";
 import Footer from "@/components/layout/Footer";
 export const metadata = {
-  title: "Ghana Tours from Accra | Roots & Rhythm Travels",
+  title: "Ghana Tours from Accra | Roots & Rhythm Travel",
   description:
-    "Explore Ghana with Roots & Rhythm Travels. Discover Accra city tours, Cape Coast and Kakum day trips, cultural journeys and custom itineraries.",
+    "Explore Ghana with Roots & Rhythm Travel. Discover Accra city tours, Cape Coast and Kakum day trips, cultural journeys and custom itineraries.",
   alternates: { canonical: "/" },
 };
  

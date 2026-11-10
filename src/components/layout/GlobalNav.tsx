@@ -119,7 +119,7 @@ export default function GlobalNav() {
                   className="absolute top-0 left-1/2 -translate-x-1/2 w-30 h-[64px] md:w-32 md:h-[90px] bg-white/20 backdrop-blur-md rounded-b-[100px] flex items-center justify-center shadow-2xl"
                 >
                   <Link href="/" className="relative w-9 h-9 md:w-14 md:h-14 mt-[-6px] md:mt-[-10px] group transition-transform duration-500 hover:scale-110 cursor-pointer">
-                    <Image src="/logo.png" alt="Roots & Rhythm Travels" fill className="object-contain" priority unoptimized />
+                    <Image src="/logo.png" alt="Roots & Rhythm Travel" fill className="object-contain" priority unoptimized />
                   </Link>
                 </motion.div>
               ) : (
@@ -271,7 +271,7 @@ export default function GlobalNav() {
             <div className="flex flex-col items-center gap-10 text-center w-full max-w-xl px-6 relative z-10">
               <div className="mb-4">
                 <Link href="/" onClick={() => setIsMenuOpen(false)} className="relative w-16 h-16 block group transition-transform duration-500 hover:scale-110 cursor-pointer">
-                  <Image src="/logo.png" alt="Roots & Rhythm Travels" fill className="object-contain" priority unoptimized />
+                  <Image src="/logo.png" alt="Roots & Rhythm Travel" fill className="object-contain" priority unoptimized />
                 </Link>
               </div>
               

@@ -1,4 +1,4 @@
--- Root & Rhythm Travels: Master Supabase Schema Reference (V7.1)
+-- Root & Rhythm Travel: Master Supabase Schema Reference (V7.1)
 -- Run this entire file on a fresh Supabase project to get a fully working database.
 
 -- ==========================================

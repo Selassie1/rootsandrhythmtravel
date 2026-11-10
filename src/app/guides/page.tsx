@@ -2,14 +2,14 @@ import Footer from '@/components/layout/Footer';
 import { guides } from './data';
 
 export const metadata = {
-  title: 'Ghana Heritage Travel Guides | Roots & Rhythm Travels',
+  title: 'Ghana Heritage Travel Guides | Roots & Rhythm Travel',
   description:
-    'Short guides to Ghana heritage sites, including Elmina Castle, Assin Manso Ancestral Slave River Park and Kumasi, from Roots & Rhythm Travels.',
+    'Short guides to Ghana heritage sites, including Elmina Castle, Assin Manso Ancestral Slave River Park and Kumasi, from Roots & Rhythm Travel.',
   alternates: { canonical: '/guides' },
   openGraph: {
     type: 'website',
     url: '/guides',
-    title: 'Ghana Heritage Travel Guides | Roots & Rhythm Travels',
+    title: 'Ghana Heritage Travel Guides | Roots & Rhythm Travel',
     description:
       'Short guides to Ghana heritage sites, including Elmina Castle, Assin Manso and Kumasi.',
     images: [{ url: '/images/kintampo.jpg', alt: 'Ghana heritage travel guides' }],

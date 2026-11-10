@@ -3,17 +3,17 @@ import ToursListing from './ToursListing';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
-  title: "Ghana Tours & Day Trips | Roots & Rhythm Travels",
+  title: "Ghana Tours & Day Trips | Roots & Rhythm Travel",
   description:
-    "Browse Ghana tours with Roots & Rhythm Travels, from Accra city experiences to Cape Coast, Kakum and cultural journeys. Find your next adventure.",
+    "Browse Ghana tours with Roots & Rhythm Travel, from Accra city experiences to Cape Coast, Kakum and cultural journeys. Find your next adventure.",
   alternates: { canonical: "/tours" },
   openGraph: {
     type: "website",
     url: "/tours",
-    title: "Ghana Tours & Day Trips | Roots & Rhythm Travels",
+    title: "Ghana Tours & Day Trips | Roots & Rhythm Travel",
     description:
-      "Browse Ghana tours with Roots & Rhythm Travels, from Accra city experiences to Cape Coast, Kakum and cultural journeys.",
-    images: [{ url: "/images/kintampo.jpg", alt: "Ghana tours with Roots & Rhythm Travels" }],
+      "Browse Ghana tours with Roots & Rhythm Travel, from Accra city experiences to Cape Coast, Kakum and cultural journeys.",
+    images: [{ url: "/images/kintampo.jpg", alt: "Ghana tours with Roots & Rhythm Travel" }],
   },
 };
 export default async function ToursPage() {

@@ -356,7 +356,7 @@ export default async function CheckoutVerifyPage({
          <Link href="/" className="relative w-10 h-10 sm:w-12 sm:h-12 block hover:scale-105 transition-transform duration-500">
             <Image 
                src="/logo.png" 
-               alt="Roots and Rhythm Travels" 
+               alt="Roots and Rhythm Travel" 
                fill
                className="object-contain"
             />

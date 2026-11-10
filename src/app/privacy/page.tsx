@@ -16,7 +16,7 @@ export default function PrivacyPage() {
       </div>
       
       <div className="max-w-4xl mx-auto px-6 lg:px-12 py-16 text-white/70 font-light leading-relaxed space-y-8 text-sm">
-        <p>Roots & Rhythm Travels is committed to ensuring that your privacy is protected. Should we ask you to provide certain information by which you can be identified when using this website, then you can be assured that it will only be used in accordance with this privacy statement.</p>
+        <p>Roots & Rhythm Travel is committed to ensuring that your privacy is protected. Should we ask you to provide certain information by which you can be identified when using this website, then you can be assured that it will only be used in accordance with this privacy statement.</p>
         
         <h2 className="text-xl font-serif text-white mt-8 mb-4">1. Information We Collect</h2>
         <p>We may collect your name, contact information including email address, demographic information such as postcode, preferences and interests, and other information relevant to customer surveys and/or offers.</p>

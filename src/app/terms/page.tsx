@@ -16,7 +16,7 @@ export default function TermsPage() {
       </div>
       
       <div className="max-w-4xl mx-auto px-6 lg:px-12 py-16 text-white/70 font-light leading-relaxed space-y-8 text-sm">
-        <p>Welcome to Roots & Rhythm Travels. By accessing and using our website, and booking our curated tours, you agree to comply with and be bound by the following terms and conditions of use.</p>
+        <p>Welcome to Roots & Rhythm Travel. By accessing and using our website, and booking our curated tours, you agree to comply with and be bound by the following terms and conditions of use.</p>
         
         <h2 className="text-xl font-serif text-white mt-8 mb-4">1. Booking and Reservations</h2>
         <p>All bookings are subject to availability. A reservation is only confirmed once the required deposit or full payment has been received and you have been provided with a booking confirmation receipt.</p>
@@ -25,7 +25,7 @@ export default function TermsPage() {
         <p>All prices are listed in USD unless otherwise noted. We reserve the right to alter the prices of any of the holidays shown on our website. You will be advised of the current price of the holiday that you wish to book before your contract is confirmed.</p>
         
         <h2 className="text-xl font-serif text-white mt-8 mb-4">3. Medical and Health Requirements</h2>
-        <p>It is your responsibility to ensure you possess the required health certifications and vaccinations for your destination. Roots & Rhythm Travels will not be held liable for any travel disruptions due to health non-compliance.</p>
+        <p>It is your responsibility to ensure you possess the required health certifications and vaccinations for your destination. Roots & Rhythm Travel will not be held liable for any travel disruptions due to health non-compliance.</p>
         
         <p className="pt-8 text-white/40 italic">Last Updated: April 2026</p>
       </div>

@@ -269,7 +269,7 @@ export async function POST(req: NextRequest) {
            await resend.emails.send({
              from: 'concierge@rootsandrhythmtravel.com', // Update with verified sender domain if available, or 'onboarding@resend.dev' for testing
              to: customerEmail,
-             subject: `Roots & Rhythm Travels: ${metadata.cart_items ? 'Expeditions' : 'Itinerary'} Confirmed [${reference}]`,
+             subject: `Roots & Rhythm Travel: ${metadata.cart_items ? 'Expeditions' : 'Itinerary'} Confirmed [${reference}]`,
              html: `
                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #131A14; color: #FAFAF8; padding: 40px; border-radius: 16px;">
                  <h1 style="color: #E8D3A2; margin-bottom: 24px;">Expedition Authorized.</h1>

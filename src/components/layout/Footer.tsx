@@ -23,7 +23,7 @@ const Footer = async () => {
           {/* Column 1: Brand & About */}
           <div className="col-span-1 md:col-span-2 lg:col-span-4 flex flex-col items-start lg:pr-12">
              <div className="flex items-center gap-4 mb-8">
-                <img src="/logo.png" alt="Roots & Rhythm Travels Logo" className="w-16 h-16 object-contain" />
+                <img src="/logo.png" alt="Roots & Rhythm Travel Logo" className="w-16 h-16 object-contain" />
                 <div className="flex flex-col justify-center">
                   <span className="text-[#F9B729] font-black text-xl md:text-2xl leading-none tracking-widest uppercase">Roots &</span>
                   <span className="text-[#E63931] font-black text-xl md:text-2xl leading-none tracking-widest uppercase mt-1">Rhythm</span>

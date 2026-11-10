@@ -53,10 +53,10 @@ export default async function GuidePage({
     description: guide.description,
     url: `${SITE_URL}/guides/${guide.slug}`,
     image: `${SITE_URL}/images/kintampo.jpg`,
-    author: { '@type': 'Organization', name: 'Roots & Rhythm Travels', url: `${SITE_URL}/` },
+    author: { '@type': 'Organization', name: 'Roots & Rhythm Travel', url: `${SITE_URL}/` },
     publisher: {
       '@type': 'Organization',
-      name: 'Roots & Rhythm Travels',
+      name: 'Roots & Rhythm Travel',
       logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
     },
   };

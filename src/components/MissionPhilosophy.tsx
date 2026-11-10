@@ -62,7 +62,7 @@ const MissionPhilosophy = () => {
           </h2>
           
           <p className="text-lg text-gray-600 leading-relaxed mb-6">
-            Roots and Rhythm Travels goes beyond the standard tourist trail. We curate deeply authentic, immersive experiences designed for anyone seeking a genuine connection to our culture, whether you are returning to your heritage or discovering the magic of West Africa for the first time.
+            Roots and Rhythm Travel goes beyond the standard tourist trail. We curate deeply authentic, immersive experiences designed for anyone seeking a genuine connection to our culture, whether you are returning to your heritage or discovering the magic of West Africa for the first time.
           </p>
           
           <p className="text-lg text-gray-600 leading-relaxed mb-10">
@@ -70,7 +70,7 @@ const MissionPhilosophy = () => {
           </p>
           
           <p className={`text-4xl lg:text-5xl text-[#B8860B] leading-none tracking-wide pt-2 ${caveat.className}`}>
-            Roots and Rhythm Travels
+            Roots and Rhythm Travel
           </p>
         </motion.div>
 

@@ -19,9 +19,9 @@ const playfair = Playfair_Display({
 });
 
 const SITE_URL = "https://www.rootsandrhythmtravel.com";
-const SITE_TITLE = "Ghana Tours from Accra | Roots & Rhythm Travels";
+const SITE_TITLE = "Ghana Tours from Accra | Roots & Rhythm Travel";
 const SITE_DESCRIPTION =
-  "Explore Ghana with Roots & Rhythm Travels. Discover Accra city tours, Cape Coast and Kakum day trips, cultural journeys and custom itineraries.";
+  "Explore Ghana with Roots & Rhythm Travel. Discover Accra city tours, Cape Coast and Kakum day trips, cultural journeys and custom itineraries.";
 const DEFAULT_IMAGE = "/images/kintampo.jpg";
 
 export const metadata: Metadata = {
@@ -33,12 +33,12 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   openGraph: {
     type: "website",
-    siteName: "Roots & Rhythm Travels",
+    siteName: "Roots & Rhythm Travel",
     url: SITE_URL,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     locale: "en_US",
-    images: [{ url: DEFAULT_IMAGE, alt: "Roots & Rhythm Travels, Ghana tours" }],
+    images: [{ url: DEFAULT_IMAGE, alt: "Roots & Rhythm Travel, Ghana tours" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -57,12 +57,12 @@ export const metadata: Metadata = {
 const travelAgencySchema = {
   "@context": "https://schema.org",
   "@type": "TravelAgency",
-  name: "Roots & Rhythm Travels",
+  name: "Roots & Rhythm Travel",
   url: `${SITE_URL}/`,
   logo: `${SITE_URL}/logo.png`,
   image: `${SITE_URL}/images/kintampo.jpg`,
   description:
-    "Ghana tours and cultural journeys from Accra: heritage, nature, and custom itineraries with Roots & Rhythm Travels.",
+    "Ghana tours and cultural journeys from Accra: heritage, nature, and custom itineraries with Roots & Rhythm Travel.",
   email: "elikem@rootsandrhythmtravel.com",
   telephone: "+233549796875",
   address: {

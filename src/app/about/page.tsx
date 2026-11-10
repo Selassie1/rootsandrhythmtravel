@@ -90,10 +90,10 @@ export default function AboutPage() {
           className="flex flex-col gap-6 md:gap-8"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-[#FAFAF8] leading-tight">
-            Why Roots & Rhythm Travels Exists
+            Why Roots & Rhythm Travel Exists
           </h2>
           <p className="text-white/60 text-base sm:text-lg leading-relaxed font-light">
-            Roots & Rhythm Travels was born from a deep-seated cultural mission: to provide authentic, immersive experiences that transcend traditional tourism. 
+            Roots & Rhythm Travel was born from a deep-seated cultural mission: to provide authentic, immersive experiences that transcend traditional tourism. 
           </p>
           <p className="text-white/60 text-base sm:text-lg leading-relaxed font-light">
             We believe that travel should be a dialogue between the soul and the soil. Our focus is on the heartbeat of West Africa—its music, dance, history, and spiritual traditions. Whether you are seeking your ancestral roots or exploring the vibrant rhythm of modern Ghana, we are your elite cultural stewardship partners.
@@ -132,7 +132,7 @@ export default function AboutPage() {
             
             <div className="space-y-6 text-white/70 text-base sm:text-lg leading-relaxed font-light">
               <p>
-                From a young age, I was captivated by the deep resonance of Ghanaian drumming and the stories etched into our ancient landscapes. Roots & Rhythm Travels was founded on the belief that travel should be more than a checklist; it should be a transformation.
+                From a young age, I was captivated by the deep resonance of Ghanaian drumming and the stories etched into our ancient landscapes. Roots & Rhythm Travel was founded on the belief that travel should be more than a checklist; it should be a transformation.
               </p>
               <p>
                 As a curator of cultural experiences, my mission is to bridge the gap between global travelers and the authentic pulse of West Africa. We don't just show you Ghana; we help you find your personal rhythm within its timeless traditions.

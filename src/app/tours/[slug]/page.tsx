@@ -44,15 +44,15 @@ export async function generateMetadata({
 
   if (!tour?.title) {
     if (slug !== 'build-your-own-expedition') return {};
-    title = 'Build Your Own Expedition | Roots & Rhythm Travels';
+    title = 'Build Your Own Expedition | Roots & Rhythm Travel';
     description =
-      'Design a personalised Ghana trip with Roots & Rhythm Travels, tailored to your schedule, budget and cultural interests.';
+      'Design a personalised Ghana trip with Roots & Rhythm Travel, tailored to your schedule, budget and cultural interests.';
     image = absoluteImage(null);
   } else {
-    title = `${tour.title} | Roots & Rhythm Travels`;
+    title = `${tour.title} | Roots & Rhythm Travel`;
     description =
       cleanText(tour.description_body) ||
-      `Explore ${tour.title} with Roots & Rhythm Travels in Ghana.`;
+      `Explore ${tour.title} with Roots & Rhythm Travel in Ghana.`;
     image = absoluteImage(tour.hero_image_url);
   }
 
@@ -65,7 +65,7 @@ export async function generateMetadata({
       url: path,
       title,
       description,
-      images: [{ url: image, alt: tour?.title || 'Roots & Rhythm Travels tour' }],
+      images: [{ url: image, alt: tour?.title || 'Roots & Rhythm Travel tour' }],
     },
     twitter: {
       card: 'summary_large_image',
@@ -96,7 +96,7 @@ export default async function TourSetupPage({ params }: { params: Promise<{ slug
        tour = {
           id: 'test-1234',
           title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-          description: isCustom ? 'Work closely with our travel concierge team to design a highly personalized motherland experience tailored precisely to your schedule, budget, and cultural interests.' : 'A deeply immersive cultural journey into the heart of West Africa tailored by Roots & Rhythm Travels.',
+          description: isCustom ? 'Work closely with our travel concierge team to design a highly personalized motherland experience tailored precisely to your schedule, budget, and cultural interests.' : 'A deeply immersive cultural journey into the heart of West Africa tailored by Roots & Rhythm Travel.',
           location: slug.includes('accra') ? 'Accra' : 'Ghana',
           duration_days: slug === 'build-your-own-expedition' ? 'Flexible' : 7,
           price: isCustom ? 0 : 35000,
@@ -133,7 +133,7 @@ export default async function TourSetupPage({ params }: { params: Promise<{ slug
     description: cleanText(tour.description_body || tour.description, 300),
     provider: {
       '@type': 'TravelAgency',
-      name: 'Roots & Rhythm Travels',
+      name: 'Roots & Rhythm Travel',
       url: `${SITE_URL}/`,
     },
     touristDestination: {
