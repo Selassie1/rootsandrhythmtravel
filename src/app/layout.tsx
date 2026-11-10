@@ -67,7 +67,7 @@ const travelAgencySchema = {
   telephone: "+233549796875",
   address: {
     "@type": "PostalAddress",
-    streetAddress: "Tse Addo",
+    streetAddress: "HVF7+M55, Tse Addo",
     addressLocality: "Accra",
     addressCountry: "GH",
   },
