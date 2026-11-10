@@ -7,6 +7,21 @@ import TourReviews from '../TourReviews';
 import { getReviewsForTour } from '@/actions/tours';
 
 export const dynamic = 'force-dynamic';
+const SITE_URL = 'https://www.rootsandrhythmtravel.com';
+
+function cleanText(html: unknown, max = 160) {
+  return String(html || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, max);
+}
+
+function absoluteImage(url?: string | null) {
+  if (!url) return `${SITE_URL}/images/kintampo.jpg`;
+  return url.startsWith('http') ? url : `${SITE_URL}${url}`;
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -16,31 +31,50 @@ export async function generateMetadata({
   const supabase = await createClient();
   const { data: tour } = await supabase
     .from('tours')
-    .select('title, description_body')
+    .select('title, description_body, hero_image_url')
     .eq('slug', slug)
     .eq('is_active', true)
     .single();
 
+  const path = `/tours/${slug}`;
+
+  let title: string;
+  let description: string;
+  let image: string;
+
   if (!tour?.title) {
-    if (slug === 'build-your-own-expedition') {
-      return {
-        title: 'Build Your Own Expedition | Roots & Rhythm Travels',
-        description:
-          'Design a personalised Ghana trip with Roots & Rhythm Travels, tailored to your schedule, budget and cultural interests.',
-      };
-    }
-    return {};
+    if (slug !== 'build-your-own-expedition') return {};
+    title = 'Build Your Own Expedition | Roots & Rhythm Travels';
+    description =
+      'Design a personalised Ghana trip with Roots & Rhythm Travels, tailored to your schedule, budget and cultural interests.';
+    image = absoluteImage(null);
+  } else {
+    title = `${tour.title} | Roots & Rhythm Travels`;
+    description =
+      cleanText(tour.description_body) ||
+      `Explore ${tour.title} with Roots & Rhythm Travels in Ghana.`;
+    image = absoluteImage(tour.hero_image_url);
   }
+
   return {
-    title: `${tour.title} | Roots & Rhythm Travels`,
-    description: String(
-      tour.description_body ||
-        `Explore ${tour.title} with Roots & Rhythm Travels in Ghana.`
-    )
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 160),
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: 'website',
+      url: path,
+      title,
+      description,
+      images: [{ url: image, alt: tour?.title || 'Roots & Rhythm Travels tour' }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [image],
+    },
+  };
+}
   };
 }
 export default async function TourSetupPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -91,8 +125,39 @@ export default async function TourSetupPage({ params }: { params: Promise<{ slug
   const reviews = tour.id === 'test-1234' ? [] : await getReviewsForTour(tour.id);
   const userExistingReview = user ? (reviews.find(r => r.user_id === user.id) ?? null) : null;
 
+    const tripSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'TouristTrip',
+    name: tour.title,
+    url: `${SITE_URL}/tours/${slug}`,
+    image: absoluteImage(tour.hero_image_url),
+    description: cleanText(tour.description_body || tour.description, 300),
+    provider: {
+      '@type': 'TravelAgency',
+      name: 'Roots & Rhythm Travels',
+      url: `${SITE_URL}/`,
+    },
+    touristDestination: {
+      '@type': 'TouristDestination',
+      name: tour.location ? `${tour.location}, Ghana` : 'Ghana',
+    },
+    ...(Number(tour.price) > 0 && {
+      offers: {
+        '@type': 'Offer',
+        price: String(tour.price),
+        priceCurrency: 'USD',
+        url: `${SITE_URL}/tours/${slug}`,
+        availability: 'https://schema.org/InStock',
+      },
+    }),
+  };
+
   return (
     <div className="min-h-screen bg-[#131A14]">
+            <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(tripSchema) }}
+      />
 
       {/* 1. Immersive Cinematic Hero — carousel if multiple images, static otherwise */}
       <div className="relative">
