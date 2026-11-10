@@ -1,5 +1,5 @@
 -- //frontend/supabase/admin_fix.sql
--- Root & Rhythm Travel: ABSOLUTE NUCLEAR RLS Reset (V3)
+-- Roots & Rhythm Travel: ABSOLUTE NUCLEAR RLS Reset (V3)
 -- 
 -- Previous scripts failed because old policies with unknown names survived.
 -- This script dynamically discovers and removes ALL policies on ALL tables.

@@ -1,5 +1,5 @@
 -- //frontend/supabase/fix_guest_bookings.sql
--- Root & Rhythm Travel: Fix Orphaned Guest Bookings
+-- Roots & Rhythm Travel: Fix Orphaned Guest Bookings
 --
 -- This script reassociates bookings that were incorrectly saved as guest checkouts
 -- when the user was actually logged in. It matches by email address.

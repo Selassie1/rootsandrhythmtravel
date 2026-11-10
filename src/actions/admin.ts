@@ -236,7 +236,7 @@ export async function updateBookingStatus(id: string, newStatus: string) {
      
      if (emailDestination) {
         await resend.emails.send({
-           from: 'Root & Rhythm Travel <concierge@rootsandrhythmtravel.com>',
+           from: 'Roots & Rhythm Travel <concierge@rootsandrhythmtravel.com>',
            to: emailDestination,
            subject: `Booking Status Update: ${newStatus.replace('_', ' ')}`,
            html: `
@@ -288,7 +288,7 @@ export async function resendReceipt(bookingId: string) {
 
      if (emailDestination) {
         const res = await resend.emails.send({
-           from: 'Root & Rhythm Travel <concierge@rootsandrhythmtravel.com>',
+           from: 'Roots & Rhythm Travel <concierge@rootsandrhythmtravel.com>',
            to: emailDestination,
            subject: `Itinerary Receipt: ${booking.tours?.title}`,
            html: `<div style="font-family:sans-serif;background:#131A14;color:#FAFAF8;padding:40px;">
@@ -336,7 +336,7 @@ export async function updatePaymentStatus(id: string, newStatus: string) {
      
      if (emailDestination) {
         await resend.emails.send({
-           from: 'Root & Rhythm Travel <concierge@rootsandrhythmtravel.com>',
+           from: 'Roots & Rhythm Travel <concierge@rootsandrhythmtravel.com>',
            to: emailDestination,
            subject: `Payment Status Update: ${newStatus.replace('_', ' ')}`,
            html: `
