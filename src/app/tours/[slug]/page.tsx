@@ -75,8 +75,7 @@ export async function generateMetadata({
     },
   };
 }
-  };
-}
+
 export default async function TourSetupPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const supabase = await createClient();

@@ -16,10 +16,7 @@ export const metadata = {
     "Explore Ghana with Roots & Rhythm Travels. Discover Accra city tours, Cape Coast and Kakum day trips, cultural journeys and custom itineraries.",
   alternates: { canonical: "/" },
 };
-  title: "Ghana Tours from Accra | Roots & Rhythm Travels",
-  description:
-    "Explore Ghana with Roots & Rhythm Travels. Discover Accra city tours, Cape Coast and Kakum day trips, cultural journeys and custom itineraries.",
-};
+ 
 export default function Home() {
   return (
     <main className="min-h-screen bg-black pt-20">
