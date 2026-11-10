@@ -31,9 +31,6 @@ export const metadata: Metadata = {
     template: "%s",
   },
   description: SITE_DESCRIPTION,
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     type: "website",
     siteName: "Roots & Rhythm Travels",
