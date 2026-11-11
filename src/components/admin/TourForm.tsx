@@ -14,8 +14,8 @@ const getSlug = (title: string) => title.toLowerCase().trim().replace(/[\s\W-]+/
 const tourSchema = z.object({
   title: z.string().min(3, "Title is required"),
   slug: z.string().min(3, "Slug is required"),
-  description_heading: z.string().optional(),
-  description_body: z.string().optional(),
+  description_heading: z.string().nullish(),
+  description_body: z.string().nullish(),
   price: z.number().min(0, "Price must be positive"),
   deposit: z.number().min(0, "Deposit must be positive"),
   duration_days: z.number().min(1, "Duration must be at least 1 day"),
@@ -27,9 +27,9 @@ const tourSchema = z.object({
   ]).default('GREATER_ACCRA'),
   experience: z.array(z.enum(['CELEBRATION', 'DIASPORA', 'SPIRITUAL', 'ADVENTURE', 'EDUCATIONAL'])).default(['DIASPORA']),
   ideal_for: z.array(z.enum(['SOLO', 'COUPLE', 'FAMILY', 'SMALL_GROUP', 'LARGE_GROUP'])).default(['SMALL_GROUP']),
-  travel_window: z.string().optional(),
-  location: z.string().optional(),
-  hero_image_url: z.string().optional(),
+  travel_window: z.string().nullish(),
+  location: z.string().nullish(),
+  hero_image_url: z.string().nullish(),
   gallery_images: z.array(z.string()).default([]),
   is_active: z.boolean().default(true),
   curated_inclusions: z.array(z.string()).default([]),
@@ -192,7 +192,7 @@ export default function TourForm({ initialData, onSuccess, onCancel }: { initial
   const currentGalleryImages = form.watch("gallery_images") || [];
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit as any)} className="w-full max-w-7xl mx-auto flex flex-col gap-6 pb-20">
+      <form onSubmit={form.handleSubmit(onSubmit as any, (errs) => setError("Please fix: " + Object.keys(errs).join(", ")))} className="w-full max-w-7xl mx-auto flex flex-col gap-6 pb-20">
       {error && (
         <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-6 py-4 rounded-xl text-sm mb-6">
           {error}
