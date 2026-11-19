@@ -17,6 +17,12 @@ export default function TourDetailClient({ tour }: { tour: any }) {
   const itinerary = tour.itinerary || [];
   const isCustom = tour.isCustom || false;
   const alreadyInCart = isInCart(tour.id);
+  const tourText = `${tour.title || ''} ${tour.description_body || tour.description || ''}`.toLowerCase();
+  const relatedGuides = [
+    { keys: ['elmina', 'cape coast'], href: '/guides/elmina-castle-ghana-heritage-guide', label: 'Elmina Castle heritage guide' },
+    { keys: ['assin manso', 'slave river'], href: '/guides/assin-manso-ancestral-slave-river-guide', label: 'Assin Manso Slave River guide' },
+    { keys: ['kumasi', 'ashanti', 'asante'], href: '/guides/kumasi-ashanti-heritage-guide', label: 'Kumasi and Ashanti heritage guide' },
+  ].filter((g) => g.keys.some((k) => tourText.includes(k)));
 
   const handleAddToCart = () => {
     if (alreadyInCart) { openDrawer(); return; }
@@ -49,6 +55,16 @@ export default function TourDetailClient({ tour }: { tour: any }) {
            <p className="text-white/60 text-base md:text-lg leading-relaxed max-w-3xl whitespace-pre-wrap">
              {tour.description_body || tour.description}
            </p>
+           {relatedGuides.length > 0 && (
+             <div className="flex flex-col gap-2 mt-2">
+               <span className="text-[#B8860B] tracking-[0.3em] font-bold uppercase text-[10px]">Read our guide</span>
+               {relatedGuides.map((g) => (
+                 <Link key={g.href} href={g.href} className="text-[#E8D3A2] hover:text-white underline text-sm md:text-base w-fit">
+                   {g.label}
+                 </Link>
+               ))}
+             </div>
+            )}
         </div>
 
         <div className="bg-[#1A241B] rounded-[32px] p-8 md:p-12 border border-white/5 shadow-2xl">
