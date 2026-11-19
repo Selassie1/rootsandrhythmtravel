@@ -27,7 +27,7 @@ export default function Home() {
       <section className="mx-auto my-10 max-w-4xl rounded-2xl border border-[#B8860B]/40 bg-[#B8860B]/10 px-6 py-8 text-center text-white">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#B8860B]">December Homecoming Heritage Day</p>
         <h2 className="mt-3 font-serif text-2xl sm:text-3xl">Welcome home this December, walk your heritage with us</h2>
-        <p className="mx-auto mt-4 max-w-2xl text-sm text-white/80 sm:text-base">A guided day to Assin Manso Slave River, the Cape Coast and Elmina castles, and Kakum. $299 per person. Book by 28 November.</p>
+        <p className="mx-auto mt-4 max-w-2xl text-sm text-white/80 sm:text-base">A guided day to <a href="/guides/assin-manso-ancestral-slave-river-guide" className="underline hover:text-[#E8D3A2]">Assin Manso Slave River</a>, the Cape Coast and <a href="/guides/elmina-castle-ghana-heritage-guide" className="underline hover:text-[#E8D3A2]">Elmina castles</a>, and Kakum. $299 per person. Book by 28 November.</p>
         <p className="mx-auto mt-3 max-w-2xl text-sm text-white/70">Small groups of up to 8, free airport pickup for groups of 4 or more, and a free WhatsApp planning call.</p>
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <a href="/tours/heritage-adventure-tour-itinerary" className="rounded-full bg-[#B8860B] px-6 py-3 text-sm font-semibold text-black">See the tour</a>
