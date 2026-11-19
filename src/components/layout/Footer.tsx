@@ -66,6 +66,7 @@ const Footer = async () => {
               <li><a href="/about" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">The Team</a></li>
               <li><a href="/about" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Stories & Reviews</a></li>
               <li><a href="/contact" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Contact Us</a></li>
+                            <li><a href="/guides" className="text-white/70 hover:text-[#E8D3A2] text-sm md:text-base transition-colors hover:pl-2 duration-300 inline-block">Ghana Heritage Guides</a></li>
             </ul>
           </div>
 
